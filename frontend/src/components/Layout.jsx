@@ -4,12 +4,26 @@ import { clearAuth } from '../services/auth';
 
 export function Layout({ children }) {
   const navigate = useNavigate();
+  const [navOpen, setNavOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
 
   const onLogout = () => {
     clearAuth();
     localStorage.removeItem('fuchibol_group_id');
     navigate('/login', { replace: true });
+  };
+
+  const toggleNav = () => {
+    setNavOpen((prev) => {
+      const next = !prev;
+      if (!next) setAdminOpen(false);
+      return next;
+    });
+  };
+
+  const closeNav = () => {
+    setNavOpen(false);
+    setAdminOpen(false);
   };
 
   return (
@@ -22,29 +36,64 @@ export function Layout({ children }) {
             <p className="brand-sub">Gestion de equipos</p>
           </div>
         </div>
-        <nav className="nav">
-          <NavLink to="/groups" className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}>
+        <button
+          className="menu-toggle"
+          type="button"
+          onClick={toggleNav}
+          aria-expanded={navOpen}
+          aria-controls="primary-nav"
+        >
+          <span className="menu-icon" aria-hidden="true" />
+          Menu
+        </button>
+        <nav className={navOpen ? 'nav is-open' : 'nav'} id="primary-nav">
+          <NavLink
+            to="/groups"
+            className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}
+            onClick={closeNav}
+          >
             Grupos
           </NavLink>
-          <NavLink to="/players" className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}>
+          <NavLink
+            to="/players"
+            className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}
+            onClick={closeNav}
+          >
             Jugadores
           </NavLink>
           <NavLink
             to="/generate-teams"
             className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}
+            onClick={closeNav}
           >
             Generar equipos
           </NavLink>
-          <NavLink to="/results" className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}>
+          <NavLink
+            to="/results"
+            className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}
+            onClick={closeNav}
+          >
             Resultados
           </NavLink>
-          <NavLink to="/stats" className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}>
+          <NavLink
+            to="/stats"
+            className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}
+            onClick={closeNav}
+          >
             Historial
           </NavLink>
-          <NavLink to="/ranking" className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}>
+          <NavLink
+            to="/ranking"
+            className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}
+            onClick={closeNav}
+          >
             Ranking
           </NavLink>
-          <NavLink to="/export" className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}>
+          <NavLink
+            to="/export"
+            className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}
+            onClick={closeNav}
+          >
             Exportacion
           </NavLink>
           <div className={adminOpen ? 'dropdown is-open' : 'dropdown'}>
@@ -58,19 +107,19 @@ export function Layout({ children }) {
             </button>
             {adminOpen ? (
               <div className="dropdown-menu">
-                <NavLink to="/admin/group" className="dropdown-item" onClick={() => setAdminOpen(false)}>
+                <NavLink to="/admin/group" className="dropdown-item" onClick={closeNav}>
                   Grupo activo
                 </NavLink>
-                <NavLink to="/users" className="dropdown-item" onClick={() => setAdminOpen(false)}>
+                <NavLink to="/users" className="dropdown-item" onClick={closeNav}>
                   Usuarios
                 </NavLink>
-                <NavLink to="/config" className="dropdown-item" onClick={() => setAdminOpen(false)}>
+                <NavLink to="/config" className="dropdown-item" onClick={closeNav}>
                   Configuracion
                 </NavLink>
-                <NavLink to="/invites" className="dropdown-item" onClick={() => setAdminOpen(false)}>
+                <NavLink to="/invites" className="dropdown-item" onClick={closeNav}>
                   Invitaciones
                 </NavLink>
-                <NavLink to="/courts" className="dropdown-item" onClick={() => setAdminOpen(false)}>
+                <NavLink to="/courts" className="dropdown-item" onClick={closeNav}>
                   Canchas
                 </NavLink>
               </div>
