@@ -41,11 +41,11 @@ function formatDate(value) {
 
 function buildInviteMessage({ inviteUrl, groupName, playerName }) {
   const shareUrl = toShareUrl(inviteUrl);
-  const safeGroup = groupName ? `"${groupName}"` : 'el grupo';
+  const groupLabel = groupName ? `al grupo "${groupName}"` : 'al grupo';
   if (playerName) {
-    return `Hola ${playerName}! Te invito al grupo ${safeGroup}. Para unirte usa este link: ${shareUrl}`;
+    return `Hola ${playerName}! Te invito ${groupLabel}. Para unirte usa este link: ${shareUrl}`;
   }
-  return `Hola! Te invito al grupo ${safeGroup}. Para unirte usa este link: ${shareUrl}`;
+  return `Hola! Te invito ${groupLabel}. Para unirte usa este link: ${shareUrl}`;
 }
 
 const emptySpecific = { player_id: '', regenerate: false };
@@ -125,7 +125,7 @@ export function InvitesPage() {
       setGeneralInvite(invite);
       const message = buildInviteMessage({
         inviteUrl: invite.url,
-        groupName: activeGroup?.name,
+        groupName: activeGroup?.name || invite?.group?.name,
       });
       const copied = await copyToClipboard(message);
       if (!copied) {
@@ -167,7 +167,7 @@ export function InvitesPage() {
       setSpecificInvitePlayerId(payload.player_id);
       const message = buildInviteMessage({
         inviteUrl: invite.url,
-        groupName: activeGroup?.name,
+        groupName: activeGroup?.name || invite?.group?.name,
         playerName: sortedPlayers.find((p) => p.id === payload.player_id)?.name,
       });
       const copied = await copyToClipboard(message);
@@ -215,7 +215,7 @@ export function InvitesPage() {
                     rows={3}
                     value={buildInviteMessage({
                       inviteUrl: generalInvite.url,
-                      groupName: activeGroup?.name,
+                      groupName: activeGroup?.name || generalInvite?.group?.name,
                     })}
                     readOnly
                   />
@@ -291,7 +291,7 @@ export function InvitesPage() {
                     rows={3}
                     value={buildInviteMessage({
                       inviteUrl: specificInvite.url,
-                      groupName: activeGroup?.name,
+                      groupName: activeGroup?.name || specificInvite?.group?.name,
                       playerName: specificPlayer?.name,
                     })}
                     readOnly

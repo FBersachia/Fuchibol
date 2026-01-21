@@ -43,6 +43,11 @@ async function createGeneralInvite(req, res, next) {
       max_uses: invite.max_uses,
       used_count: invite.used_count,
       url: buildInviteUrl(req.group.slug, invite.token),
+      group: {
+        id: req.group.id,
+        name: req.group.name,
+        slug: req.group.slug,
+      },
     });
   } catch (err) {
     return next(err);
@@ -96,6 +101,11 @@ async function createSpecificInvite(req, res, next) {
       max_uses: invite.max_uses,
       used_count: invite.used_count,
       url: buildInviteUrl(req.group.slug, invite.token),
+      group: {
+        id: req.group.id,
+        name: req.group.name,
+        slug: req.group.slug,
+      },
     });
   } catch (err) {
     return next(err);
