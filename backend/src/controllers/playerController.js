@@ -108,9 +108,12 @@ async function updatePlayer(req, res, next) {
     }
     if (gender !== undefined) {
       if (player.user_id) {
-        return res.status(400).json({ error: 'gender is managed by the user profile' });
+        if (gender !== player.gender) {
+          return res.status(400).json({ error: 'gender is managed by the user profile' });
+        }
+      } else {
+        player.gender = gender;
       }
-      player.gender = gender;
     }
     if (elo !== undefined) {
       const nextElo = Number(elo);
