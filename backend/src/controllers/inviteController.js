@@ -102,6 +102,50 @@ async function createSpecificInvite(req, res, next) {
   }
 }
 
+async function getInviteInfo(req, res, next) {
+  try {
+    const { slug, token } = req.params;
+
+    const invite = await GroupInvite.findOne({
+      where: { token, revoked_at: null },
+      include: [{ model: Group }, { model: Player }],
+    });
+    if (!invite || !invite.Group || invite.Group.deleted_at) {
+      return res.status(404).json({ error: 'Invite not found' });
+    }
+
+    if (invite.Group.slug !== slug) {
+      return res.status(404).json({ error: 'Invite not found' });
+    }
+
+    const now = new Date();
+    if (invite.expires_at <= now) {
+      return res.status(410).json({ error: 'Invite expired' });
+    }
+
+    if (invite.used_count >= invite.max_uses) {
+      return res.status(400).json({ error: 'Invite usage limit reached' });
+    }
+
+    return res.json({
+      type: invite.type,
+      group: {
+        id: invite.Group.id,
+        name: invite.Group.name,
+        slug: invite.Group.slug,
+      },
+      player: invite.player_id
+        ? {
+            id: invite.player_id,
+            name: invite.Player ? invite.Player.name : null,
+          }
+        : null,
+    });
+  } catch (err) {
+    return next(err);
+  }
+}
+
 async function joinByInvite(req, res, next) {
   try {
     const { slug, token } = req.params;
@@ -291,5 +335,6 @@ async function joinByInvite(req, res, next) {
 module.exports = {
   createGeneralInvite,
   createSpecificInvite,
+  getInviteInfo,
   joinByInvite,
 };
