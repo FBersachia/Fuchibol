@@ -58,6 +58,9 @@ export function Layout({ children }) {
             </button>
             {adminOpen ? (
               <div className="dropdown-menu">
+                <NavLink to="/admin/group" className="dropdown-item" onClick={() => setAdminOpen(false)}>
+                  Grupo activo
+                </NavLink>
                 <NavLink to="/users" className="dropdown-item" onClick={() => setAdminOpen(false)}>
                   Usuarios
                 </NavLink>

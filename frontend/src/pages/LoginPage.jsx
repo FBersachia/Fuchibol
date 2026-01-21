@@ -11,6 +11,10 @@ export function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const onRegister = () => {
+    navigate('/register');
+  };
+
   const onChange = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -64,9 +68,14 @@ export function LoginPage() {
 
           {error ? <p className="notice error">{error}</p> : null}
 
-          <button className="button" type="submit" disabled={loading}>
-            {loading ? 'Ingresando...' : 'Ingresar'}
-          </button>
+          <div className="actions">
+            <button className="button" type="submit" disabled={loading}>
+              {loading ? 'Ingresando...' : 'Ingresar'}
+            </button>
+            <button className="button button--ghost" type="button" onClick={onRegister}>
+              Crear usuario
+            </button>
+          </div>
         </form>
       </section>
     </main>

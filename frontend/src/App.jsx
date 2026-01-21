@@ -12,6 +12,8 @@ import { RankingPage } from './pages/RankingPage';
 import { CourtsPage } from './pages/CourtsPage';
 import { InvitesPage } from './pages/InvitesPage';
 import { InviteJoinPage } from './pages/InviteJoinPage';
+import { RegisterPage } from './pages/RegisterPage';
+import { GroupAdminPage } from './pages/GroupAdminPage';
 import { Layout } from './components/Layout';
 import { getAuth } from './services/auth';
 
@@ -35,6 +37,7 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
       <Route path="/invites/:slug/:token" element={<InviteJoinPage />} />
       <Route
         path="/groups"
@@ -101,6 +104,18 @@ function App() {
             <RequireGroup>
               <Layout>
                 <UsersPage />
+              </Layout>
+            </RequireGroup>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin/group"
+        element={
+          <RequireAuth>
+            <RequireGroup>
+              <Layout>
+                <GroupAdminPage />
               </Layout>
             </RequireGroup>
           </RequireAuth>
