@@ -618,4 +618,11 @@ p {
     flex-direction: column;
     align-items: stretch;
   }
+
+  .table--players .col-gender,
+  .table--players .col-goalkeeper,
+  .table--players .col-user,
+  .table--players .col-actions {
+    display: none;
+  }
 }
