@@ -6,7 +6,11 @@ function buildUrl(path) {
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
-  return `${API_BASE}${path}`;
+  if (!API_BASE) return path;
+
+  const base = API_BASE.replace(/\/+$/, '');
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${base}${normalizedPath}`;
 }
 
 export async function apiFetch(path, options = {}) {
