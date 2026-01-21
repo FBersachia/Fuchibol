@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { apiFetch } from '../services/api';
+
+const GROUP_KEY = 'fuchibol_group_id';
 
 function toShareUrl(inviteUrl) {
   if (!inviteUrl) return '';
@@ -37,17 +39,30 @@ function formatDate(value) {
   return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString();
 }
 
+function buildInviteMessage({ inviteUrl, groupName, playerName }) {
+  const shareUrl = toShareUrl(inviteUrl);
+  const safeGroup = groupName ? `"${groupName}"` : 'el grupo';
+  if (playerName) {
+    return `Hola ${playerName}! Te invito al grupo ${safeGroup}. Para unirte usa este link: ${shareUrl}`;
+  }
+  return `Hola! Te invito al grupo ${safeGroup}. Para unirte usa este link: ${shareUrl}`;
+}
+
 const emptySpecific = { player_id: '', regenerate: false };
 
 export function InvitesPage() {
   const [players, setPlayers] = useState([]);
+  const [activeGroup, setActiveGroup] = useState(null);
   const [generalInvite, setGeneralInvite] = useState(null);
   const [specificInvite, setSpecificInvite] = useState(null);
+  const [specificInvitePlayerId, setSpecificInvitePlayerId] = useState(null);
   const [specificForm, setSpecificForm] = useState(emptySpecific);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
   const [creatingGeneral, setCreatingGeneral] = useState(false);
   const [creatingSpecific, setCreatingSpecific] = useState(false);
+  const [copyNotice, setCopyNotice] = useState('');
   const [error, setError] = useState('');
+  const copyTimeoutRef = useRef(null);
 
   useEffect(() => {
     const loadPlayers = async () => {
@@ -63,13 +78,44 @@ export function InvitesPage() {
       }
     };
 
+    const loadGroup = async () => {
+      const groupId = localStorage.getItem(GROUP_KEY);
+      if (!groupId) return;
+      try {
+        const data = await apiFetch('/groups');
+        const list = data?.groups || [];
+        const found = list.find((group) => String(group.id) === String(groupId));
+        setActiveGroup(found || null);
+      } catch (err) {
+        setError(err.message || 'No se pudo cargar grupo.');
+      }
+    };
+
     loadPlayers();
+    loadGroup();
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
   }, []);
 
   const sortedPlayers = useMemo(
     () => [...players].sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' })),
     [players]
   );
+  const specificPlayer = useMemo(() => {
+    if (!specificInvitePlayerId) return null;
+    return players.find((player) => String(player.id) === String(specificInvitePlayerId)) || null;
+  }, [players, specificInvitePlayerId]);
+
+  const showCopyNotice = (message) => {
+    setCopyNotice(message);
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
+    copyTimeoutRef.current = setTimeout(() => setCopyNotice(''), 3000);
+  };
 
   const onCreateGeneral = async () => {
     setCreatingGeneral(true);
@@ -77,9 +123,15 @@ export function InvitesPage() {
     try {
       const invite = await apiFetch('/invites/general', { method: 'POST' });
       setGeneralInvite(invite);
-      const copied = await copyToClipboard(toShareUrl(invite.url));
+      const message = buildInviteMessage({
+        inviteUrl: invite.url,
+        groupName: activeGroup?.name,
+      });
+      const copied = await copyToClipboard(message);
       if (!copied) {
-        setError('No se pudo copiar el link al portapapeles.');
+        setError('No se pudo copiar el mensaje al portapapeles.');
+      } else {
+        showCopyNotice('Mensaje copiado al portapapeles.');
       }
     } catch (err) {
       setError(err.message || 'No se pudo crear invitacion general.');
@@ -112,9 +164,17 @@ export function InvitesPage() {
         body: JSON.stringify(payload),
       });
       setSpecificInvite(invite);
-      const copied = await copyToClipboard(toShareUrl(invite.url));
+      setSpecificInvitePlayerId(payload.player_id);
+      const message = buildInviteMessage({
+        inviteUrl: invite.url,
+        groupName: activeGroup?.name,
+        playerName: sortedPlayers.find((p) => p.id === payload.player_id)?.name,
+      });
+      const copied = await copyToClipboard(message);
       if (!copied) {
-        setError('No se pudo copiar el link al portapapeles.');
+        setError('No se pudo copiar el mensaje al portapapeles.');
+      } else {
+        showCopyNotice('Mensaje copiado al portapapeles.');
       }
     } catch (err) {
       setError(err.message || 'No se pudo crear invitacion especifica.');
@@ -134,6 +194,7 @@ export function InvitesPage() {
           </div>
 
           {error ? <p className="notice error">{error}</p> : null}
+          {copyNotice ? <p className="notice">{copyNotice}</p> : null}
 
           <div className="card stack gap-sm">
             <h2>Invitacion general</h2>
@@ -146,6 +207,18 @@ export function InvitesPage() {
                 <label className="field">
                   <span>Link para compartir</span>
                   <input className="input" value={toShareUrl(generalInvite.url)} readOnly />
+                </label>
+                <label className="field">
+                  <span>Mensaje para compartir</span>
+                  <textarea
+                    className="input"
+                    rows={3}
+                    value={buildInviteMessage({
+                      inviteUrl: generalInvite.url,
+                      groupName: activeGroup?.name,
+                    })}
+                    readOnly
+                  />
                 </label>
                 <div className="grid grid-3">
                   <div className="meta">
@@ -210,6 +283,19 @@ export function InvitesPage() {
                 <label className="field">
                   <span>Link para compartir</span>
                   <input className="input" value={toShareUrl(specificInvite.url)} readOnly />
+                </label>
+                <label className="field">
+                  <span>Mensaje para compartir</span>
+                  <textarea
+                    className="input"
+                    rows={3}
+                    value={buildInviteMessage({
+                      inviteUrl: specificInvite.url,
+                      groupName: activeGroup?.name,
+                      playerName: specificPlayer?.name,
+                    })}
+                    readOnly
+                  />
                 </label>
                 <div className="grid grid-3">
                   <div className="meta">
