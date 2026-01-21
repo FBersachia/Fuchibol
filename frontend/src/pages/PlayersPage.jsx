@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { apiFetch } from '../services/api';
 import { getAuth } from '../services/auth';
 
-const emptyCreate = { name: '', gender: 'h', elo: 1200, is_goalkeeper: false };
+const emptyCreate = { name: '', gender: 'h', elo: 500, is_goalkeeper: false };
 
 export function PlayersPage() {
   const auth = getAuth();
@@ -182,6 +182,7 @@ export function PlayersPage() {
                     value={createForm.elo}
                     onChange={onCreateChange}
                     min="0"
+                    placeholder="500"
                     required
                   />
                 </label>
