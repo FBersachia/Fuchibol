@@ -172,16 +172,28 @@ export function GroupsPage() {
                       <button
                         className="button"
                         type="button"
-                        onClick={() => selectGroup(group)}
-                        disabled={isActive}
+                        onClick={() =>
+                          isActive ? navigate('/players', { replace: true }) : selectGroup(group)
+                        }
                       >
-                        {isActive ? 'Activo' : 'Ingresar'}
+                        {isActive ? 'Ir al grupo' : 'Ingresar'}
                       </button>
                     </article>
                   );
                 })}
               </div>
             )}
+          </div>
+
+          <div className="card stack gap-sm">
+            <h2>Como usar el sistema</h2>
+            <ul className="list">
+              <li>Selecciona un grupo y entra con "Ir al grupo".</li>
+              <li>Como admin, gestiona el grupo desde Admin -> Grupo activo.</li>
+              <li>Crea jugadores y canchas, genera equipos y carga resultados.</li>
+              <li>Usa Invitaciones para sumar nuevos miembros.</li>
+              <li>Podes cambiar de grupo en cualquier momento desde esta pantalla.</li>
+            </ul>
           </div>
 
           <form className="card stack gap-sm" onSubmit={onCreateGroup}>
