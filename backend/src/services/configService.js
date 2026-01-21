@@ -11,10 +11,10 @@ const DEFAULTS = {
   use_social_default: true,
 };
 
-async function getConfig() {
-  let config = await AppConfig.findByPk(1);
+async function getConfig(groupId) {
+  let config = await AppConfig.findOne({ where: { group_id: groupId } });
   if (!config) {
-    config = await AppConfig.create({ id: 1, ...DEFAULTS });
+    config = await AppConfig.create({ ...DEFAULTS, group_id: groupId });
   }
   return config;
 }
@@ -29,8 +29,8 @@ function diffChanges(before, after) {
   return changes;
 }
 
-async function updateConfig(payload, { changedBy } = {}) {
-  const config = await getConfig();
+async function updateConfig(payload, { changedBy, groupId } = {}) {
+  const config = await getConfig(groupId);
   const before = config.toJSON();
 
   await config.update(payload);
@@ -41,14 +41,16 @@ async function updateConfig(payload, { changedBy } = {}) {
       config_id: config.id,
       changed_by: changedBy || null,
       changes,
+      group_id: groupId,
     });
   }
 
   return config;
 }
 
-async function listConfigHistory(limit = 50) {
+async function listConfigHistory(groupId, limit = 50) {
   return ConfigHistory.findAll({
+    where: { group_id: groupId },
     order: [['id', 'DESC']],
     limit,
   });

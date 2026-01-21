@@ -1,10 +1,10 @@
 ﻿const bcrypt = require('bcryptjs');
-const { User } = require('../models');
+const { User, Player } = require('../models');
 
 async function listUsers(_req, res, next) {
   try {
     const users = await User.findAll({
-      attributes: ['id', 'name', 'email', 'role', 'created_at', 'updated_at'],
+      attributes: ['id', 'name', 'email', 'role', 'gender', 'created_at', 'updated_at'],
       order: [['id', 'ASC']],
     });
     return res.json(users);
@@ -15,19 +15,26 @@ async function listUsers(_req, res, next) {
 
 async function createUser(req, res, next) {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, gender } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'name, email, and password are required' });
     }
 
     const password_hash = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password_hash, role: role || 'user' });
+    const user = await User.create({
+      name,
+      email,
+      password_hash,
+      role: role || 'user',
+      gender: gender || null,
+    });
 
     return res.status(201).json({
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
+      gender: user.gender,
     });
   } catch (err) {
     return next(err);
@@ -37,7 +44,7 @@ async function createUser(req, res, next) {
 async function updateUser(req, res, next) {
   try {
     const { id } = req.params;
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, gender } = req.body;
 
     const user = await User.findByPk(id);
     if (!user) {
@@ -47,17 +54,22 @@ async function updateUser(req, res, next) {
     if (name !== undefined) user.name = name;
     if (email !== undefined) user.email = email;
     if (role !== undefined) user.role = role;
+    if (gender !== undefined) user.gender = gender;
     if (password !== undefined) {
       user.password_hash = await bcrypt.hash(password, 10);
     }
 
     await user.save();
+    if (gender !== undefined) {
+      await Player.update({ gender }, { where: { user_id: user.id } });
+    }
 
     return res.json({
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
+      gender: user.gender,
     });
   } catch (err) {
     return next(err);

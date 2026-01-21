@@ -24,6 +24,10 @@ const EloHistory = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    group_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   },
   {
     tableName: 'elo_history',

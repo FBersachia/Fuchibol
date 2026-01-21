@@ -25,6 +25,10 @@ const User = sequelize.define(
       allowNull: false,
       defaultValue: 'user',
     },
+    gender: {
+      type: DataTypes.ENUM('h', 'm'),
+      allowNull: true,
+    },
   },
   {
     tableName: 'users',

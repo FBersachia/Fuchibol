@@ -17,14 +17,14 @@ function buildTeamPlayers(match) {
   return map;
 }
 
-async function recalcAllElo() {
+async function recalcAllElo(groupId) {
   return sequelize.transaction(async (t) => {
-    const config = await getConfig();
+    const config = await getConfig(groupId);
     const winDelta = config.win_delta ?? DEFAULT_WIN;
     const drawDelta = config.draw_delta ?? DEFAULT_DRAW;
     const lossDelta = config.loss_delta ?? DEFAULT_LOSS;
 
-    const players = await Player.findAll({ transaction: t });
+    const players = await Player.findAll({ where: { group_id: groupId }, transaction: t });
     const playerElo = new Map();
     const playerStats = new Map();
 
@@ -33,9 +33,10 @@ async function recalcAllElo() {
       playerStats.set(p.id, { wins: 0, losses: 0 });
     }
 
-    await EloHistory.destroy({ where: {}, transaction: t });
+    await EloHistory.destroy({ where: { group_id: groupId }, transaction: t });
 
     const matches = await Match.findAll({
+      where: { group_id: groupId },
       include: [
         { model: Team, include: [Player] },
         { model: MatchResult },
@@ -86,6 +87,7 @@ async function recalcAllElo() {
               elo_before: before,
               elo_after: after,
               delta,
+              group_id: groupId,
             },
             { transaction: t }
           );
@@ -110,14 +112,17 @@ async function recalcAllElo() {
   });
 }
 
-async function upsertResult(matchId, payload, { allowCreate }) {
+async function upsertResult(matchId, payload, { allowCreate, groupId }) {
   const { winning_team_id, is_draw, goal_diff, mvp_player_id } = payload;
 
   return sequelize.transaction(async (t) => {
-    const match = await Match.findByPk(matchId, { transaction: t });
+    const match = await Match.findOne({ where: { id: matchId, group_id: groupId }, transaction: t });
     if (!match) return { error: { status: 404, message: 'Match not found' } };
 
-    let result = await MatchResult.findOne({ where: { match_id: matchId }, transaction: t });
+    let result = await MatchResult.findOne({
+      where: { match_id: matchId, group_id: groupId },
+      transaction: t,
+    });
     if (!result && !allowCreate) {
       return { error: { status: 404, message: 'Result not found' } };
     }
@@ -133,6 +138,7 @@ async function upsertResult(matchId, payload, { allowCreate }) {
           is_draw: Boolean(is_draw),
           goal_diff: Number(goal_diff || 0),
           mvp_player_id: mvp_player_id || null,
+          group_id: groupId,
         },
         { transaction: t }
       );
@@ -151,9 +157,9 @@ async function upsertResult(matchId, payload, { allowCreate }) {
   });
 }
 
-async function replaceDistinctions(matchId, distinctions) {
+async function replaceDistinctions(matchId, distinctions, groupId) {
   if (!Array.isArray(distinctions)) return;
-  await Distinction.destroy({ where: { match_id: matchId } });
+  await Distinction.destroy({ where: { match_id: matchId, group_id: groupId } });
   if (distinctions.length === 0) return;
 
   const rows = distinctions.map((d) => ({
@@ -161,6 +167,7 @@ async function replaceDistinctions(matchId, distinctions) {
     player_id: d.player_id,
     type: d.type,
     notes: d.notes || null,
+    group_id: groupId,
   }));
 
   await Distinction.bulkCreate(rows);

@@ -35,8 +35,16 @@ const Player = sequelize.define(
       allowNull: false,
       defaultValue: 0,
     },
+    group_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     user_id: {
       type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    deleted_at: {
+      type: DataTypes.DATE,
       allowNull: true,
     },
   },

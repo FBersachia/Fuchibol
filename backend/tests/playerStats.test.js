@@ -1,10 +1,9 @@
-﻿const request = require('supertest');
+const request = require('supertest');
 const { app } = require('../src/app');
-const { getAdminToken } = require('./helpers');
+const { getAdminAuthHeaders } = require('./helpers');
 
 async function authHeader() {
-  const token = await getAdminToken();
-  return { Authorization: `Bearer ${token}` };
+  return getAdminAuthHeaders();
 }
 
 describe('Player stats', () => {
@@ -65,3 +64,4 @@ describe('Player stats', () => {
     expect(statsLoser.body.losses).toBe(1);
   });
 });
+

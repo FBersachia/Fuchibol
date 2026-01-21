@@ -5,16 +5,17 @@ async function getPlayerMatches(req, res, next) {
     const { id } = req.params;
 
     const matches = await Match.findAll({
+      where: { group_id: req.group.id },
       include: [
         {
           model: Team,
           include: [
             {
               model: Player,
-              where: { id },
+              where: { id, group_id: req.group.id, deleted_at: null },
               required: true,
             },
-            { model: Player },
+            { model: Player, where: { group_id: req.group.id, deleted_at: null }, required: false },
           ],
         },
         { model: MatchResult },

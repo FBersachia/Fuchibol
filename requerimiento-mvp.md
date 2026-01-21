@@ -1,0 +1,68 @@
+Vamos a hacer una reestructuración del sistema para que se pueda realizar lo siguiente:
+- Cada usuario puede estar asignado a distintos "grupos de futbol".
+- Los usuarios pueden ser administradores de un "grupo de futbol". -> Crearlos, editarlos, agregar jugadores. 
+- El nickname de cada jugador puede ser distinto en cada grupo de futbol. 
+- Cuando un usuario pertenece a mas de un grupo, luego de logearse podrá elegir a que grupo acceder para visualizar la información.
+
+## Consultas pendientes
+- "Grupo de futbol" es equivalente a organizacion/club? Que campos necesita (nombre, descripcion, logo, estado, visibilidad)? -> No es lo mismo. Grupo de futbol es un grupo autogestionado entre amigos de manera informal.
+- Un usuario puede ser admin de multiples grupos? Hay otros roles (solo admin/miembro)? -> Si, puede ser admin de multiples grupos. Por el momento tendrá una limitación para ser admin solo de un grupo. Si quiere ser admin de más de un grupo deberá abonar (esto es en un futuro). 
+- Como se agrega un usuario a un grupo: invitacion, solicitud o alta directa por admin? -> Puede ingresar por un link. El link es compartido por el admin. En un futuro será enviado por email. 
+- El "jugador" siempre es un usuario del sistema o puede existir jugador sin usuario? -> El admin puede crear jugadores sin que esten vinculados por email. Pero si los jugadores quieren acceder a ver la información deben estar loggeados por email. 
+- El nickname por grupo es obligatorio u opcional? Debe ser unico dentro del grupo? -> El nickname por grupo es obligatorio, no puede repetirse dentro del mismo grupo.
+- Que datos del jugador son globales vs. por grupo (elo, historial, genero, arquero, etc.)? -> Genero es global. Lo demás es interno del grupo.
+- Partidos, equipos, configuracion, ranking y estadisticas quedan aislados por grupo? -> Si.
+- Que pasa con los datos existentes: migracion a un grupo "default" o varios? -> Los datos existentes serán miembros del grupo "fuchibol oculto".
+- Al loguear, el usuario elige grupo por sesion o puede cambiarlo? Se recuerda el ultimo grupo? -> Al loggear el usuario será dirigido a "inicio" donde podrá elegir a que grupo acceder. 
+- Como se define el grupo activo para las peticiones? Se envia group_id en cada request (header/param/URL), se guarda en JWT, o se persiste en backend por usuario? -> Recomendacion: enviar group_id en cada request (header X-Group-Id o en la URL), validar pertenencia en backend y guardar ultimo grupo en frontend (localStorage) para recordar seleccion.
+- Confirmar la limitacion actual: el usuario solo puede crear/administrar 1 grupo ahora, o puede administrar varios desde el MVP? -> Desde el mvp solo podrá administrar uno. En un futuro para administrar más de uno deberá abonar una membresia.
+- El link de acceso es permanente o expira? Se puede regenerar/invalidar? -> El link expira, se puede regenerar, no se puede invalidar manualmente.
+- Al entrar por link, el usuario queda miembro automaticamente o requiere aprobacion del admin? -> Al entrar por link el usuario queda miembro automaticamente.
+- Un admin puede promover/demover admins dentro del grupo? -> Solo habrá un admin por grupo. En un futuro si el grupo quiere que haya más de un admin deberá abonar función de pago.
+- Al unirse a un grupo, se crea un jugador automaticamente? Que campos se piden (nickname, genero)? -> Si. Se pide nickname, genero y elo inicial.
+- Si un jugador fue creado sin usuario, como se vincula luego con un usuario por email (flujo y permisos)? -> Por link, invitación generada por el admin.
+- El nickname por grupo es el nombre visible principal? Se puede cambiar? -> Se puede cambiar, si. 
+- El genero global se mantiene consistente entre grupos: se bloquea editarlo por grupo o se replica desde el perfil del usuario? -> Se replica desde el perfil del usuario.
+- "Fuchibol oculto": debe ser invisible en el selector de grupos para usuarios normales? Tiene link de acceso? -> Cada grupo solo puede ser visible para usuarios que pertenecen al grupo.
+- Configuracion (w_elo, w_genero, etc.) pasa a ser por grupo con valores por defecto, o se mantiene global? -> Pasa a ser por grupo con valores por defecto.
+- En la pantalla de inicio se hará un tutorial escrito del sistema donde se explicará como usarlo.
+- Como elegimos el enfoque de grupo activo: group_id en cada request (header/param), claim en JWT, o guardado en backend por usuario? Definir opcion final. -> Usar group_id por request (header X-Group-Id o URL). Evita reemitir JWT al cambiar de grupo y es mas simple.
+- El selector de grupos debe incluir filtro/busqueda? Orden (ultimo usado, alfabetico)? -> No es necesario. Que aparezcan como cards. 
+- El tutorial de inicio va antes o despues de elegir grupo? Es global o por grupo? -> Va por debajo de la selección de grupos. 
+- Un usuario puede salir de un grupo? Que pasa con su jugador, historial y resultados? -> Un usuario puede salir de un grupo. Sus datos pasan a un borrado logico. 
+- El admin puede borrar/archivar un grupo? Que pasa con los datos asociados? -> El admin puede borrar un grupo. Los datos asociados pasan a borrado logico.
+- El link de invitacion es one-time o puede ser usado por varios? Limite de usos? -> Puede ser usado por varios. Limite 30.
+- Se necesita limitar cantidad de miembros por grupo? -> Limite 30. Si quieren aumentar el limite debe ser una función de pago premium.
+- Al entrar por link, si el email ya existe y el jugador existe en el grupo, se vincula automaticamente o se crea otro? -> Se vincula automaticamente por link generado por admin.  
+- Si el admin creo un jugador sin usuario, como se hace el match con un email (por nickname, por token unico, o por invitacion directa)? -> Por link unico. El admin puede generar dos tipos de link: 1. El general para crear jugador. 2. Uno particular para que un unico jugador pueda ser vinculado directamente con su usuario. 
+- Se necesita definir un nombre publico del grupo (slug) para URLs amigables? Debe ser unico? -> Si.
+- El elo inicial pedido al unirse: rango permitido y valor por defecto si no se ingresa? -> Rango permitido entre 300 y 1000. Valor por defecto 500.
+- Cuando el usuario entra por link y no tiene cuenta: debe registrarse (email + password) o se crea cuenta temporal? Requiere verificacion de email? -> Debe registrarse, no requiere verificación por email por el momento.
+- El link general (crear jugador) y el link especifico (vincular jugador) comparten politica de expiracion? Cuanto dura el link? -> Si, comparten politica de 4hs.
+- El link especifico debe ser de uso unico y se invalida al usarse? -> Si.
+- El limite 30 aplica por grupo o por link? (link general vs link especifico) -> link general.
+- Se puede transferir el rol de admin a otro usuario? Que pasa si el admin sale del grupo? -> Si, se puede transferir a otro usuario. Si el admin sale del grupo debe asignarle el rol a otro usuario.
+- Para el borrado logico de usuarios/jugadores: se conservan en historiales de partidos y reportes o se ocultan completamente? -> Se conservan en la db. Pero tendrá un borrado logico para que no sea accesible por usuarios.
+- El slug del grupo es editable? Reglas de formato y palabras reservadas? -> Si, es editable.
+- Para API/links, que identificador de grupo se usa: slug o id? El header X-Group-Id enviara slug o id? -> Es mejor usar el id no? 
+- Limite 30 aplica a jugadores, a usuarios miembros, o a ambos? Los jugadores sin usuario cuentan para el limite? -> Si, cuentan para el limite.
+- Si un usuario cambia su genero en el perfil, se actualiza en todos sus jugadores de grupos? Si un jugador no tiene usuario, quien puede editar su genero? -> Si un usuario cambia su genero, se actualiza en todos sus jugadores de grupos. Si un jugador no tiene grupo, el admin puede editarlo.
+- Si un usuario sale de un grupo y luego reingresa por link, se restaura su jugador con borrado logico o se crea uno nuevo? -> Se restaura su jugador. 
+- Al borrar un grupo (borrado logico), se invalida el slug y los links de invitacion? Se puede reactivar el grupo? -> Se invalida si. Para reactivarlo debe abonar una función premium.
+- Confirmar identificador final: X-Group-Id enviara id numerico? El slug solo se usa en URLs publicas? Es mejor usar el id? En ese caso si, usar id.
+- Definir formato de slug (lowercase, guiones), longitud maxima y palabras reservadas. guiones longitud maxima 40.
+- Si se edita el slug, los links viejos quedan invalidos o redireccionan? Quedan invalidos. 
+- Limite 30: que ocurre cuando se alcanza? Se bloquea crear jugadores/unirse con un error? Mensaje esperado? Se bloquea crear jugadores. Se muestra un mensaje esperado.
+- Confirmar: "Si un jugador no tiene grupo, el admin puede editarlo" significa "sin usuario"? Si es sin usuario, el admin puede editar genero? Si, exactamente.
+- Al reingresar y restaurar jugador, se conserva nickname/elo/historial previo o se permite actualizar nickname al reingresar? Se conserva, luego se puede editar.
+- Links: el admin puede invalidar links especificos? Hay limite de links especificos por grupo? No hay limite. El admin no puede invalidarlos.
+- Confirmar limite 30: aplica al total de jugadores por grupo (con o sin usuario). Tambien limita usuarios miembros si superan 30 jugadores? -> Si, es un limite general del grupo. No puede tener mas de 30 jugadores, indistintamente si están vinculados a un usuario o no.
+- Slug: es unico a nivel sistema? Hay palabras reservadas prohibidas (ej: admin, login, api)? -> Si, debe haber palabras prohibidas. 
+- Aclarar invalidacion de links: antes se menciono que se puede invalidar. Aplica solo al link general, al especifico, o ninguno (solo expiran)? -> Me corrijo. No se pueden invalidar. Aplica a ambos. Solo expiran.
+- Si el admin no puede invalidar links, quien puede hacerlo (solo sistema) y en que casos? -> Nadie puede invalidar links desde el sistema. 
+- Definir lista de palabras prohibidas para el slug (ej: admin, login, api). -> admin, login, logout, signup, register, auth, api, health, status, me, users, user, groups, group, matches, match, players, player, teams, team, config, ranking, social, export, courts, court, invite, invitations.
+- Slug: se permiten numeros y letras solamente, o tambien otros caracteres? Debe ser siempre lowercase? -> solo numeros y letras. Debe ser siempre lowercase.
+- Limite 30: los jugadores con borrado logico cuentan para el limite, o solo los activos? -> Solo los activos.
+- Cuando el admin "regenera" un link, el link viejo sigue valido hasta expirar (sin invalidarse)? -> Si se regenera un link se invalida el anterior.
+- Regenerar link reinicia la expiracion a 4hs y el contador de usos? -> Si.
+- Cantidad de links activos: 1 general por grupo y 1 especifico por jugador, o multiples simultaneos? -> Multiples simultaneos(por jugador), por grupo solo uno.

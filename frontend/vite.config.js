@@ -16,6 +16,8 @@ export default defineConfig({
       '/config': 'http://localhost:3000',
       '/export': 'http://localhost:3000',
       '/courts': 'http://localhost:3000',
+      '/groups': 'http://localhost:3000',
+      '/invites': 'http://localhost:3000',
     },
   },
 })

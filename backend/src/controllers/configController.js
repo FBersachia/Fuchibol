@@ -7,9 +7,9 @@ function parseNumber(value, field) {
   return num;
 }
 
-async function getAppConfig(_req, res, next) {
+async function getAppConfig(req, res, next) {
   try {
-    const config = await getConfig();
+    const config = await getConfig(req.group.id);
     return res.json(config);
   } catch (err) {
     return next(err);
@@ -29,7 +29,7 @@ async function updateAppConfig(req, res, next) {
     if (req.body.loss_delta !== undefined) payload.loss_delta = parseNumber(req.body.loss_delta, 'loss_delta');
     if (req.body.use_social_default !== undefined) payload.use_social_default = Boolean(req.body.use_social_default);
 
-    const config = await updateConfig(payload, { changedBy: req.user?.id });
+    const config = await updateConfig(payload, { changedBy: req.user?.id, groupId: req.group.id });
     return res.json(config);
   } catch (err) {
     if (err.message.startsWith('Invalid')) {
@@ -42,7 +42,7 @@ async function updateAppConfig(req, res, next) {
 async function getConfigHistory(req, res, next) {
   try {
     const limit = req.query.limit ? Number(req.query.limit) : 50;
-    const history = await listConfigHistory(limit);
+    const history = await listConfigHistory(req.group.id, limit);
     return res.json({ limit, history });
   } catch (err) {
     return next(err);

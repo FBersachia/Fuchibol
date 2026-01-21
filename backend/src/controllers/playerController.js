@@ -1,8 +1,9 @@
 const { Player, User } = require('../models');
 
-async function listPlayers(_req, res, next) {
+async function listPlayers(req, res, next) {
   try {
     const players = await Player.findAll({
+      where: { group_id: req.group.id, deleted_at: null },
       include: [{ model: User, attributes: ['id', 'name', 'email'] }],
       order: [['name', 'ASC'], ['id', 'ASC']],
     });
@@ -15,30 +16,67 @@ async function listPlayers(_req, res, next) {
 async function createPlayer(req, res, next) {
   try {
     const { name, gender, elo, initial_elo, is_goalkeeper, user_id } = req.body;
-    if (!name || !gender || elo === undefined) {
-      return res.status(400).json({ error: 'name, gender, and elo are required' });
+    if (!name || elo === undefined) {
+      return res.status(400).json({ error: 'name and elo are required' });
     }
 
-    if (Number(elo) < 100) {
-      return res.status(400).json({ error: 'elo must be at least 100' });
+    const nextElo = Number(elo);
+    if (Number.isNaN(nextElo) || nextElo < 300 || nextElo > 1000) {
+      return res.status(400).json({ error: 'elo must be between 300 and 1000' });
     }
-    if (initial_elo !== undefined && Number(initial_elo) < 100) {
-      return res.status(400).json({ error: 'initial_elo must be at least 100' });
+    if (initial_elo !== undefined) {
+      const nextInitial = Number(initial_elo);
+      if (Number.isNaN(nextInitial) || nextInitial < 300 || nextInitial > 1000) {
+        return res.status(400).json({ error: 'initial_elo must be between 300 and 1000' });
+      }
     }
+
+    const activeCount = await Player.count({
+      where: { group_id: req.group.id, deleted_at: null },
+    });
+    if (activeCount >= 30) {
+      return res.status(400).json({ error: 'Group player limit reached (30)' });
+    }
+
+    const existingNickname = await Player.findOne({
+      where: { group_id: req.group.id, name, deleted_at: null },
+    });
+    if (existingNickname) {
+      return res.status(409).json({ error: 'Nickname already in use for this group' });
+    }
+
+    let resolvedGender = gender;
     if (user_id) {
       const existingUser = await User.findByPk(user_id);
       if (!existingUser) {
         return res.status(404).json({ error: 'User not found' });
       }
+      const existingPlayer = await Player.findOne({
+        where: { group_id: req.group.id, user_id, deleted_at: null },
+      });
+      if (existingPlayer) {
+        return res.status(409).json({ error: 'User already has a player in this group' });
+      }
+      if (!existingUser.gender) {
+        if (!gender) {
+          return res.status(400).json({ error: 'gender is required for this user' });
+        }
+        existingUser.gender = gender;
+        await existingUser.save();
+      }
+      resolvedGender = existingUser.gender;
+    } else if (!gender) {
+      return res.status(400).json({ error: 'gender is required' });
     }
 
     const player = await Player.create({
       name,
-      gender,
-      elo,
-      initial_elo,
+      gender: resolvedGender,
+      elo: nextElo,
+      initial_elo: initial_elo !== undefined ? Number(initial_elo) : undefined,
       is_goalkeeper: Boolean(is_goalkeeper),
       user_id: user_id || null,
+      group_id: req.group.id,
     });
 
     return res.status(201).json(player);
@@ -52,24 +90,41 @@ async function updatePlayer(req, res, next) {
     const { id } = req.params;
     const { name, gender, elo, initial_elo, is_goalkeeper, wins, losses, user_id } = req.body;
 
-    const player = await Player.findByPk(id);
+    const player = await Player.findOne({
+      where: { id, group_id: req.group.id, deleted_at: null },
+    });
     if (!player) {
       return res.status(404).json({ error: 'Player not found' });
     }
 
-    if (name !== undefined) player.name = name;
-    if (gender !== undefined) player.gender = gender;
-    if (elo !== undefined) {
-      if (Number(elo) < 100) {
-        return res.status(400).json({ error: 'elo must be at least 100' });
+    if (name !== undefined) {
+      const existingNickname = await Player.findOne({
+        where: { group_id: req.group.id, name, deleted_at: null },
+      });
+      if (existingNickname && existingNickname.id !== player.id) {
+        return res.status(409).json({ error: 'Nickname already in use for this group' });
       }
-      player.elo = elo;
+      player.name = name;
+    }
+    if (gender !== undefined) {
+      if (player.user_id) {
+        return res.status(400).json({ error: 'gender is managed by the user profile' });
+      }
+      player.gender = gender;
+    }
+    if (elo !== undefined) {
+      const nextElo = Number(elo);
+      if (Number.isNaN(nextElo) || nextElo < 300 || nextElo > 1000) {
+        return res.status(400).json({ error: 'elo must be between 300 and 1000' });
+      }
+      player.elo = nextElo;
     }
     if (initial_elo !== undefined) {
-      if (Number(initial_elo) < 100) {
-        return res.status(400).json({ error: 'initial_elo must be at least 100' });
+      const nextInitial = Number(initial_elo);
+      if (Number.isNaN(nextInitial) || nextInitial < 300 || nextInitial > 1000) {
+        return res.status(400).json({ error: 'initial_elo must be between 300 and 1000' });
       }
-      player.initial_elo = initial_elo;
+      player.initial_elo = nextInitial;
     }
     if (is_goalkeeper !== undefined) player.is_goalkeeper = Boolean(is_goalkeeper);
     if (wins !== undefined) player.wins = wins;
@@ -82,6 +137,16 @@ async function updatePlayer(req, res, next) {
         if (!existingUser) {
           return res.status(404).json({ error: 'User not found' });
         }
+        if (!existingUser.gender) {
+          return res.status(400).json({ error: 'User must have gender set' });
+        }
+        const existingPlayer = await Player.findOne({
+          where: { group_id: req.group.id, user_id, deleted_at: null },
+        });
+        if (existingPlayer && existingPlayer.id !== player.id) {
+          return res.status(409).json({ error: 'User already has a player in this group' });
+        }
+        player.gender = existingUser.gender;
         player.user_id = user_id;
       }
     }
@@ -97,12 +162,15 @@ async function updatePlayer(req, res, next) {
 async function deletePlayer(req, res, next) {
   try {
     const { id } = req.params;
-    const player = await Player.findByPk(id);
+    const player = await Player.findOne({
+      where: { id, group_id: req.group.id, deleted_at: null },
+    });
     if (!player) {
       return res.status(404).json({ error: 'Player not found' });
     }
 
-    await player.destroy();
+    player.deleted_at = new Date();
+    await player.save();
     return res.status(204).send();
   } catch (err) {
     return next(err);

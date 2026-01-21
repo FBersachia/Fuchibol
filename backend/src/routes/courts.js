@@ -5,15 +5,16 @@ const {
   updateCourt,
   deleteCourt,
 } = require('../controllers/courtController');
-const { authenticate, requireRole } = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
+const { requireGroup, requireGroupRole } = require('../middleware/groupContext');
 
 const router = express.Router();
 
 router.use(authenticate);
 
-router.get('/', listCourts);
-router.post('/', requireRole('admin'), createCourt);
-router.patch('/:id', requireRole('admin'), updateCourt);
-router.delete('/:id', requireRole('admin'), deleteCourt);
+router.get('/', requireGroup, listCourts);
+router.post('/', requireGroup, requireGroupRole('admin'), createCourt);
+router.patch('/:id', requireGroup, requireGroupRole('admin'), updateCourt);
+router.delete('/:id', requireGroup, requireGroupRole('admin'), deleteCourt);
 
 module.exports = router;

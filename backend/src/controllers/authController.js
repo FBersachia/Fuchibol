@@ -37,7 +37,7 @@ function logout(_req, res) {
 async function me(req, res, next) {
   try {
     const user = await User.findByPk(req.user.id, {
-      attributes: ['id', 'name', 'email', 'role'],
+      attributes: ['id', 'name', 'email', 'role', 'gender'],
     });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });

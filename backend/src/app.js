@@ -11,6 +11,8 @@ const rankingRoutes = require('./routes/ranking');
 const configRoutes = require('./routes/config');
 const exportRoutes = require('./routes/export');
 const courtRoutes = require('./routes/courts');
+const groupRoutes = require('./routes/groups');
+const inviteRoutes = require('./routes/invites');
 const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
@@ -29,10 +31,12 @@ app.use('/teams', teamRoutes);
 app.use('/courts', courtRoutes);
 app.use('/matches', resultRoutes);
 app.use('/players', playerHistoryRoutes);
+app.use('/', inviteRoutes);
 app.use('/', socialRoutes);
 app.use('/', rankingRoutes);
 app.use('/', configRoutes);
 app.use('/', exportRoutes);
+app.use('/', groupRoutes);
 
 app.use(errorHandler);
 

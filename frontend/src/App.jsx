@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
+import { GroupsPage } from './pages/GroupsPage';
 import { PlayersPage } from './pages/PlayersPage';
 import { GenerateTeamsPage } from './pages/GenerateTeamsPage';
 import { ResultsPage } from './pages/ResultsPage';
@@ -9,6 +10,8 @@ import { ConfigPage } from './pages/ConfigPage';
 import { ExportPage } from './pages/ExportPage';
 import { RankingPage } from './pages/RankingPage';
 import { CourtsPage } from './pages/CourtsPage';
+import { InvitesPage } from './pages/InvitesPage';
+import { InviteJoinPage } from './pages/InviteJoinPage';
 import { Layout } from './components/Layout';
 import { getAuth } from './services/auth';
 
@@ -20,17 +23,38 @@ function RequireAuth({ children }) {
   return children;
 }
 
+function RequireGroup({ children }) {
+  const groupId = localStorage.getItem('fuchibol_group_id');
+  if (!groupId) {
+    return <Navigate to="/groups" replace />;
+  }
+  return children;
+}
+
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/invites/:slug/:token" element={<InviteJoinPage />} />
+      <Route
+        path="/groups"
+        element={
+          <RequireAuth>
+            <Layout>
+              <GroupsPage />
+            </Layout>
+          </RequireAuth>
+        }
+      />
       <Route
         path="/players"
         element={
           <RequireAuth>
-            <Layout>
-              <PlayersPage />
-            </Layout>
+            <RequireGroup>
+              <Layout>
+                <PlayersPage />
+              </Layout>
+            </RequireGroup>
           </RequireAuth>
         }
       />
@@ -38,9 +62,11 @@ function App() {
         path="/generate-teams"
         element={
           <RequireAuth>
-            <Layout>
-              <GenerateTeamsPage />
-            </Layout>
+            <RequireGroup>
+              <Layout>
+                <GenerateTeamsPage />
+              </Layout>
+            </RequireGroup>
           </RequireAuth>
         }
       />
@@ -48,9 +74,11 @@ function App() {
         path="/results"
         element={
           <RequireAuth>
-            <Layout>
-              <ResultsPage />
-            </Layout>
+            <RequireGroup>
+              <Layout>
+                <ResultsPage />
+              </Layout>
+            </RequireGroup>
           </RequireAuth>
         }
       />
@@ -58,9 +86,11 @@ function App() {
         path="/stats"
         element={
           <RequireAuth>
-            <Layout>
-              <StatsPage />
-            </Layout>
+            <RequireGroup>
+              <Layout>
+                <StatsPage />
+              </Layout>
+            </RequireGroup>
           </RequireAuth>
         }
       />
@@ -68,9 +98,11 @@ function App() {
         path="/users"
         element={
           <RequireAuth>
-            <Layout>
-              <UsersPage />
-            </Layout>
+            <RequireGroup>
+              <Layout>
+                <UsersPage />
+              </Layout>
+            </RequireGroup>
           </RequireAuth>
         }
       />
@@ -78,9 +110,11 @@ function App() {
         path="/config"
         element={
           <RequireAuth>
-            <Layout>
-              <ConfigPage />
-            </Layout>
+            <RequireGroup>
+              <Layout>
+                <ConfigPage />
+              </Layout>
+            </RequireGroup>
           </RequireAuth>
         }
       />
@@ -88,9 +122,11 @@ function App() {
         path="/export"
         element={
           <RequireAuth>
-            <Layout>
-              <ExportPage />
-            </Layout>
+            <RequireGroup>
+              <Layout>
+                <ExportPage />
+              </Layout>
+            </RequireGroup>
           </RequireAuth>
         }
       />
@@ -98,9 +134,11 @@ function App() {
         path="/ranking"
         element={
           <RequireAuth>
-            <Layout>
-              <RankingPage />
-            </Layout>
+            <RequireGroup>
+              <Layout>
+                <RankingPage />
+              </Layout>
+            </RequireGroup>
           </RequireAuth>
         }
       />
@@ -108,13 +146,28 @@ function App() {
         path="/courts"
         element={
           <RequireAuth>
-            <Layout>
-              <CourtsPage />
-            </Layout>
+            <RequireGroup>
+              <Layout>
+                <CourtsPage />
+              </Layout>
+            </RequireGroup>
           </RequireAuth>
         }
       />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route
+        path="/invites"
+        element={
+          <RequireAuth>
+            <RequireGroup>
+              <Layout>
+                <InvitesPage />
+              </Layout>
+            </RequireGroup>
+          </RequireAuth>
+        }
+      />
+      <Route path="/" element={<Navigate to="/players" replace />} />
+      <Route path="*" element={<Navigate to="/players" replace />} />
     </Routes>
   );
 }

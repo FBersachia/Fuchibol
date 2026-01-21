@@ -12,8 +12,8 @@ async function getSocialPairs(req, res, next) {
     since.setMonth(since.getMonth() - Number(since_months));
 
     const matches = await Match.findAll({
-      where: { match_date: { [Op.gte]: since } },
-      include: [{ model: Team, include: [Player] }],
+      where: { match_date: { [Op.gte]: since }, group_id: req.group.id },
+      include: [{ model: Team, include: [{ model: Player, where: { deleted_at: null }, required: false }] }],
     });
 
     const counts = new Map();

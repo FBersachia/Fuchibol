@@ -1,9 +1,12 @@
 const { Match, Team, Player, MatchResult, Distinction, Court } = require('../models');
 const { generateTeams, previewTeams } = require('../services/teamGenerator');
 
-async function listMatches(_req, res, next) {
+async function listMatches(req, res, next) {
   try {
-    const matches = await Match.findAll({ order: [['match_date', 'DESC'], ['id', 'DESC']] });
+    const matches = await Match.findAll({
+      where: { group_id: req.group.id },
+      order: [['match_date', 'DESC'], ['id', 'DESC']],
+    });
     return res.json(matches);
   } catch (err) {
     return next(err);
@@ -13,12 +16,16 @@ async function listMatches(_req, res, next) {
 async function getMatch(req, res, next) {
   try {
     const { id } = req.params;
-    const match = await Match.findByPk(id, {
+    const match = await Match.findOne({
+      where: { id, group_id: req.group.id },
       include: [
-        { model: Team, include: [Player] },
+        {
+          model: Team,
+          include: [{ model: Player, where: { group_id: req.group.id, deleted_at: null }, required: false }],
+        },
         { model: MatchResult },
-        { model: Distinction },
-        { model: Court },
+        { model: Distinction, where: { group_id: req.group.id }, required: false },
+        { model: Court, where: { group_id: req.group.id }, required: false },
       ],
     });
 
@@ -40,11 +47,16 @@ async function createMatch(req, res, next) {
     }
 
     if (court_id) {
-      const court = await Court.findByPk(court_id);
+      const court = await Court.findOne({ where: { id: court_id, group_id: req.group.id } });
       if (!court) return res.status(404).json({ error: 'Court not found' });
     }
 
-    const match = await Match.create({ match_date, notes: notes || null, court_id: court_id || null });
+    const match = await Match.create({
+      match_date,
+      notes: notes || null,
+      court_id: court_id || null,
+      group_id: req.group.id,
+    });
     return res.status(201).json(match);
   } catch (err) {
     return next(err);
@@ -56,7 +68,7 @@ async function updateMatch(req, res, next) {
     const { id } = req.params;
     const { match_date, notes, status, court_id } = req.body;
 
-    const match = await Match.findByPk(id);
+    const match = await Match.findOne({ where: { id, group_id: req.group.id } });
     if (!match) {
       return res.status(404).json({ error: 'Match not found' });
     }
@@ -68,7 +80,7 @@ async function updateMatch(req, res, next) {
       if (court_id === null) {
         match.court_id = null;
       } else {
-        const court = await Court.findByPk(court_id);
+        const court = await Court.findOne({ where: { id: court_id, group_id: req.group.id } });
         if (!court) return res.status(404).json({ error: 'Court not found' });
         match.court_id = court_id;
       }
@@ -84,7 +96,7 @@ async function updateMatch(req, res, next) {
 async function deleteMatch(req, res, next) {
   try {
     const { id } = req.params;
-    const match = await Match.findByPk(id);
+    const match = await Match.findOne({ where: { id, group_id: req.group.id } });
     if (!match) {
       return res.status(404).json({ error: 'Match not found' });
     }
@@ -102,7 +114,7 @@ async function generateTeamsForMatch(req, res, next) {
     const { player_ids, use_social, weights, team_names, preview } = req.body;
 
     const result = preview
-      ? await previewTeams(player_ids, {
+      ? await previewTeams(req.group.id, player_ids, {
           use_social,
           w_elo: weights?.w_elo,
           w_genero: weights?.w_genero,
@@ -110,7 +122,7 @@ async function generateTeamsForMatch(req, res, next) {
           teamA_name: team_names?.teamA,
           teamB_name: team_names?.teamB,
         })
-      : await generateTeams(Number(id), player_ids, {
+      : await generateTeams(req.group.id, Number(id), player_ids, {
           use_social,
           w_elo: weights?.w_elo,
           w_genero: weights?.w_genero,
@@ -133,7 +145,7 @@ async function previewTeamsForMatch(req, res, next) {
   try {
     const { player_ids, use_social, weights, team_names } = req.body;
 
-    const result = await previewTeams(player_ids, {
+    const result = await previewTeams(req.group.id, player_ids, {
       use_social,
       w_elo: weights?.w_elo,
       w_genero: weights?.w_genero,

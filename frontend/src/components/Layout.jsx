@@ -8,6 +8,7 @@ export function Layout({ children }) {
 
   const onLogout = () => {
     clearAuth();
+    localStorage.removeItem('fuchibol_group_id');
     navigate('/login', { replace: true });
   };
 
@@ -22,6 +23,9 @@ export function Layout({ children }) {
           </div>
         </div>
         <nav className="nav">
+          <NavLink to="/groups" className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}>
+            Grupos
+          </NavLink>
           <NavLink to="/players" className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}>
             Jugadores
           </NavLink>
@@ -59,6 +63,9 @@ export function Layout({ children }) {
                 </NavLink>
                 <NavLink to="/config" className="dropdown-item" onClick={() => setAdminOpen(false)}>
                   Configuracion
+                </NavLink>
+                <NavLink to="/invites" className="dropdown-item" onClick={() => setAdminOpen(false)}>
+                  Invitaciones
                 </NavLink>
                 <NavLink to="/courts" className="dropdown-item" onClick={() => setAdminOpen(false)}>
                   Canchas

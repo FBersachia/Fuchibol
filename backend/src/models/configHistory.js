@@ -17,6 +17,10 @@ const ConfigHistory = sequelize.define(
       allowNull: false,
       defaultValue: {},
     },
+    group_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   },
   {
     tableName: 'config_history',

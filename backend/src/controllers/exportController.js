@@ -29,14 +29,24 @@ async function exportData(req, res, next) {
   try {
     const matchWhere = buildDateFilter(req.query);
 
-    const players = await Player.findAll({ order: [['id', 'ASC']] });
+    const players = await Player.findAll({
+      where: { group_id: req.group.id, deleted_at: null },
+      order: [['id', 'ASC']],
+    });
     const matches = await Match.findAll({
-      where: matchWhere,
+      where: { ...matchWhere, group_id: req.group.id },
       include: [{ model: MatchResult }],
       order: [['match_date', 'ASC'], ['id', 'ASC']],
     });
     const eloHistory = await EloHistory.findAll({
-      include: [{ model: Match, where: matchWhere, required: Object.keys(matchWhere).length > 0 }],
+      where: { group_id: req.group.id },
+      include: [
+        {
+          model: Match,
+          where: { ...matchWhere, group_id: req.group.id },
+          required: Object.keys(matchWhere).length > 0,
+        },
+      ],
       order: [[Match, 'match_date', 'ASC'], ['id', 'ASC']],
     });
 

@@ -4,4 +4,5 @@ frontend/node_modules/
 backend/.env
 frontend/.env
 frontend/dist/
+.local-postgres/
 *.log

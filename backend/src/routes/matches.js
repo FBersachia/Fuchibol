@@ -9,19 +9,20 @@ const {
   previewTeamsForMatch,
 } = require('../controllers/matchController');
 const { getMatchesSummary } = require('../controllers/matchSummaryController');
-const { authenticate, requireRole } = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
+const { requireGroup, requireGroupRole } = require('../middleware/groupContext');
 
 const router = express.Router();
 
 router.use(authenticate);
 
-router.get('/', listMatches);
-router.get('/summary', getMatchesSummary);
-router.post('/preview-teams', requireRole('admin'), previewTeamsForMatch);
-router.get('/:id', getMatch);
-router.post('/', requireRole('admin'), createMatch);
-router.patch('/:id', requireRole('admin'), updateMatch);
-router.delete('/:id', requireRole('admin'), deleteMatch);
-router.post('/:id/generate-teams', requireRole('admin'), generateTeamsForMatch);
+router.get('/', requireGroup, listMatches);
+router.get('/summary', requireGroup, getMatchesSummary);
+router.post('/preview-teams', requireGroup, requireGroupRole('admin'), previewTeamsForMatch);
+router.get('/:id', requireGroup, getMatch);
+router.post('/', requireGroup, requireGroupRole('admin'), createMatch);
+router.patch('/:id', requireGroup, requireGroupRole('admin'), updateMatch);
+router.delete('/:id', requireGroup, requireGroupRole('admin'), deleteMatch);
+router.post('/:id/generate-teams', requireGroup, requireGroupRole('admin'), generateTeamsForMatch);
 
 module.exports = router;

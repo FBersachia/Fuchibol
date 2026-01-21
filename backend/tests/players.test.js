@@ -1,10 +1,9 @@
-﻿const request = require('supertest');
+const request = require('supertest');
 const { app } = require('../src/app');
-const { getAdminToken } = require('./helpers');
+const { getAdminAuthHeaders } = require('./helpers');
 
 async function authHeader() {
-  const token = await getAdminToken();
-  return { Authorization: `Bearer ${token}` };
+  return getAdminAuthHeaders();
 }
 
 describe('Players', () => {
@@ -12,7 +11,7 @@ describe('Players', () => {
     const createRes = await request(app)
       .post('/players')
       .set(await authHeader())
-      .send({ name: 'Jugador', gender: 'h', elo: 1200, is_goalkeeper: false });
+      .send({ name: 'Jugador', gender: 'h', elo: 900, is_goalkeeper: false });
 
     expect(createRes.status).toBe(201);
     const playerId = createRes.body.id;
@@ -24,10 +23,10 @@ describe('Players', () => {
     const updateRes = await request(app)
       .patch(`/players/${playerId}`)
       .set(await authHeader())
-      .send({ elo: 1210, wins: 1 });
+      .send({ elo: 910, wins: 1 });
 
     expect(updateRes.status).toBe(200);
-    expect(updateRes.body.elo).toBe(1210);
+    expect(updateRes.body.elo).toBe(910);
 
     const deleteRes = await request(app)
       .delete(`/players/${playerId}`)
@@ -36,3 +35,4 @@ describe('Players', () => {
     expect(deleteRes.status).toBe(204);
   });
 });
+

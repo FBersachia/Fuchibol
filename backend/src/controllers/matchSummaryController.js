@@ -20,12 +20,15 @@ function buildDateFilter(query) {
 async function getMatchesSummary(req, res, next) {
   try {
     const where = buildDateFilter(req.query);
+    where.group_id = req.group.id;
 
     const totalMatches = await Match.count({ where });
     const completedMatches = await Match.count({ where: { ...where, status: 'completed' } });
     const pendingMatches = await Match.count({ where: { ...where, status: 'pending' } });
-    const totalPlayers = await Player.count();
-    const totalResults = await MatchResult.count();
+    const totalPlayers = await Player.count({
+      where: { group_id: req.group.id, deleted_at: null },
+    });
+    const totalResults = await MatchResult.count({ where: { group_id: req.group.id } });
 
     return res.json({
       filters: req.query,

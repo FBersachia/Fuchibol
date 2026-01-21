@@ -1,8 +1,11 @@
 const { Court } = require('../models');
 
-async function listCourts(_req, res, next) {
+async function listCourts(req, res, next) {
   try {
-    const courts = await Court.findAll({ order: [['id', 'ASC']] });
+    const courts = await Court.findAll({
+      where: { group_id: req.group.id },
+      order: [['id', 'ASC']],
+    });
     return res.json(courts);
   } catch (err) {
     return next(err);
@@ -16,7 +19,7 @@ async function createCourt(req, res, next) {
       return res.status(400).json({ error: 'name is required' });
     }
 
-    const court = await Court.create({ name });
+    const court = await Court.create({ name, group_id: req.group.id });
     return res.status(201).json(court);
   } catch (err) {
     return next(err);
@@ -28,7 +31,7 @@ async function updateCourt(req, res, next) {
     const { id } = req.params;
     const { name } = req.body;
 
-    const court = await Court.findByPk(id);
+    const court = await Court.findOne({ where: { id, group_id: req.group.id } });
     if (!court) {
       return res.status(404).json({ error: 'Court not found' });
     }
@@ -45,7 +48,7 @@ async function updateCourt(req, res, next) {
 async function deleteCourt(req, res, next) {
   try {
     const { id } = req.params;
-    const court = await Court.findByPk(id);
+    const court = await Court.findOne({ where: { id, group_id: req.group.id } });
     if (!court) {
       return res.status(404).json({ error: 'Court not found' });
     }

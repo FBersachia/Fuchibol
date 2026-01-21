@@ -20,6 +20,10 @@ const Distinction = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    group_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   },
   {
     tableName: 'distinctions',

@@ -44,6 +44,10 @@ const AppConfig = sequelize.define(
       allowNull: false,
       defaultValue: true,
     },
+    group_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   },
   {
     tableName: 'app_config',

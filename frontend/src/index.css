@@ -370,6 +370,14 @@ p {
   background: #fffdf9;
 }
 
+.group-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: space-between;
+  min-height: 180px;
+}
+
 .pill-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -404,6 +412,12 @@ p {
   gap: 6px;
   font-weight: 600;
   color: var(--muted);
+}
+
+.token {
+  word-break: break-all;
+  font-family: 'Space Grotesk', 'IBM Plex Sans', 'Segoe UI', sans-serif;
+  font-size: 0.85rem;
 }
 
 .toggle {

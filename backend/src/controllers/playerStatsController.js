@@ -3,15 +3,23 @@
 async function getPlayerStats(req, res, next) {
   try {
     const { id } = req.params;
-    const player = await Player.findByPk(id);
+    const player = await Player.findOne({
+      where: { id, group_id: req.group.id, deleted_at: null },
+    });
     if (!player) {
       return res.status(404).json({ error: 'Player not found' });
     }
 
-    const matchesPlayed = await EloHistory.count({ where: { player_id: id } });
-    const mvpCount = await Distinction.count({ where: { player_id: id, type: 'mvp' } });
+    const matchesPlayed = await EloHistory.count({
+      where: { player_id: id, group_id: req.group.id },
+    });
+    const mvpCount = await Distinction.count({
+      where: { player_id: id, type: 'mvp', group_id: req.group.id },
+    });
 
-    const distinctions = await Distinction.findAll({ where: { player_id: id } });
+    const distinctions = await Distinction.findAll({
+      where: { player_id: id, group_id: req.group.id },
+    });
     const byType = distinctions.reduce((acc, item) => {
       acc[item.type] = (acc[item.type] || 0) + 1;
       return acc;

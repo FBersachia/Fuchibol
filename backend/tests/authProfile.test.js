@@ -1,10 +1,9 @@
-﻿const request = require('supertest');
+const request = require('supertest');
 const { app } = require('../src/app');
-const { getAdminToken } = require('./helpers');
+const { getAdminAuthHeaders } = require('./helpers');
 
 async function authHeader() {
-  const token = await getAdminToken();
-  return { Authorization: `Bearer ${token}` };
+  return getAdminAuthHeaders();
 }
 
 describe('Auth profile', () => {
@@ -32,3 +31,4 @@ describe('Auth profile', () => {
     expect(loginRes.status).toBe(200);
   });
 });
+

@@ -15,13 +15,13 @@ async function createResult(req, res, next) {
     const errorMsg = validateResultPayload(req.body);
     if (errorMsg) return res.status(400).json({ error: errorMsg });
 
-    const result = await upsertResult(id, req.body, { allowCreate: true });
+    const result = await upsertResult(id, req.body, { allowCreate: true, groupId: req.group.id });
     if (result.error) {
       return res.status(result.error.status).json({ error: result.error.message });
     }
 
-    await replaceDistinctions(id, req.body.distinctions || []);
-    await recalcAllElo();
+    await replaceDistinctions(id, req.body.distinctions || [], req.group.id);
+    await recalcAllElo(req.group.id);
 
     return res.status(201).json({ match_id: Number(id), status: 'completed' });
   } catch (err) {
@@ -35,13 +35,13 @@ async function updateResult(req, res, next) {
     const errorMsg = validateResultPayload(req.body);
     if (errorMsg) return res.status(400).json({ error: errorMsg });
 
-    const result = await upsertResult(id, req.body, { allowCreate: false });
+    const result = await upsertResult(id, req.body, { allowCreate: false, groupId: req.group.id });
     if (result.error) {
       return res.status(result.error.status).json({ error: result.error.message });
     }
 
-    await replaceDistinctions(id, req.body.distinctions || []);
-    await recalcAllElo();
+    await replaceDistinctions(id, req.body.distinctions || [], req.group.id);
+    await recalcAllElo(req.group.id);
 
     return res.json({ match_id: Number(id), status: 'completed' });
   } catch (err) {
@@ -52,8 +52,12 @@ async function updateResult(req, res, next) {
 async function getMatchResult(req, res, next) {
   try {
     const { id } = req.params;
-    const match = await Match.findByPk(id, {
-      include: [{ model: MatchResult }, { model: Distinction }],
+    const match = await Match.findOne({
+      where: { id, group_id: req.group.id },
+      include: [
+        { model: MatchResult },
+        { model: Distinction, where: { group_id: req.group.id }, required: false },
+      ],
     });
     if (!match) return res.status(404).json({ error: 'Match not found' });
 

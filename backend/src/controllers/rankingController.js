@@ -4,12 +4,15 @@ async function getRanking(req, res, next) {
   try {
     const { limit = 20 } = req.query;
     const players = await Player.findAll({
+      where: { group_id: req.group.id, deleted_at: null },
       order: [['elo', 'DESC'], ['id', 'ASC']],
       limit: Number(limit),
     });
 
     const playerIds = players.map((p) => p.id);
-    const distinctions = await Distinction.findAll({ where: { player_id: playerIds } });
+    const distinctions = await Distinction.findAll({
+      where: { player_id: playerIds, group_id: req.group.id },
+    });
 
     const byPlayer = distinctions.reduce((acc, item) => {
       acc[item.player_id] = acc[item.player_id] || {};

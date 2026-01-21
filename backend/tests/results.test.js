@@ -1,10 +1,9 @@
-﻿const request = require('supertest');
+const request = require('supertest');
 const { app } = require('../src/app');
-const { getAdminToken } = require('./helpers');
+const { getAdminAuthHeaders } = require('./helpers');
 
 async function authHeader() {
-  const token = await getAdminToken();
-  return { Authorization: `Bearer ${token}` };
+  return getAdminAuthHeaders();
 }
 
 describe('Results', () => {
@@ -58,3 +57,4 @@ describe('Results', () => {
     expect(getRes.body.match_id).toBe(matchId);
   });
 });
+

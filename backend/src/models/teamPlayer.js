@@ -12,6 +12,10 @@ const TeamPlayer = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    group_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   },
   {
     tableName: 'team_players',

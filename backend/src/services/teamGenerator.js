@@ -55,12 +55,12 @@ function teamSocialScore(team, pairCounts) {
   return score;
 }
 
-async function buildPairCounts(playerIds) {
+async function buildPairCounts(groupId, playerIds) {
   const since = new Date();
   since.setMonth(since.getMonth() - 12);
 
   const matches = await Match.findAll({
-    where: { match_date: { [Op.gte]: since } },
+    where: { match_date: { [Op.gte]: since }, group_id: groupId },
     include: [{ model: Team, include: [Player] }],
   });
 
@@ -100,8 +100,8 @@ function genderOk(teamA, teamB, tolerance) {
   return Math.abs(femalesA - femalesB) <= tolerance;
 }
 
-async function computeBestTeams(players, playerIds, options = {}) {
-  const config = await getConfig();
+async function computeBestTeams(groupId, players, playerIds, options = {}) {
+  const config = await getConfig(groupId);
   const weights = {
     w_elo: options.w_elo ?? config.w_elo ?? 1.0,
     w_genero: options.w_genero ?? config.w_genero ?? 5.0,
@@ -109,7 +109,7 @@ async function computeBestTeams(players, playerIds, options = {}) {
   };
 
   const useSocial = options.use_social !== undefined ? options.use_social : config.use_social_default;
-  const pairCounts = useSocial ? await buildPairCounts(playerIds) : new Map();
+  const pairCounts = useSocial ? await buildPairCounts(groupId, playerIds) : new Map();
   const tolerance = options.gender_tolerance ?? config.gender_tolerance ?? 1;
 
   const half = playerIds.length / 2;
@@ -155,17 +155,24 @@ async function computeBestTeams(players, playerIds, options = {}) {
   return { best, bestMeta, usedStrictGender, weights };
 }
 
-async function previewTeams(playerIds, options = {}) {
+async function previewTeams(groupId, playerIds, options = {}) {
   if (!Array.isArray(playerIds) || playerIds.length < 2 || playerIds.length % 2 !== 0) {
     return { error: { status: 400, message: 'player_ids must be an even-length array' } };
   }
 
-  const players = await Player.findAll({ where: { id: playerIds } });
+  const players = await Player.findAll({
+    where: { id: playerIds, group_id: groupId, deleted_at: null },
+  });
   if (players.length !== playerIds.length) {
     return { error: { status: 400, message: 'Invalid player_ids' } };
   }
 
-  const { best, bestMeta, usedStrictGender } = await computeBestTeams(players, playerIds, options);
+  const { best, bestMeta, usedStrictGender } = await computeBestTeams(
+    groupId,
+    players,
+    playerIds,
+    options
+  );
 
   if (!best) {
     return { error: { status: 400, message: 'Unable to generate teams' } };
@@ -196,25 +203,32 @@ async function previewTeams(playerIds, options = {}) {
   };
 }
 
-async function generateTeams(matchId, playerIds, options = {}) {
+async function generateTeams(groupId, matchId, playerIds, options = {}) {
   if (!Array.isArray(playerIds) || playerIds.length < 2 || playerIds.length % 2 !== 0) {
     return { error: { status: 400, message: 'player_ids must be an even-length array' } };
   }
 
-  const match = await Match.findByPk(matchId);
+  const match = await Match.findOne({ where: { id: matchId, group_id: groupId } });
   if (!match) return { error: { status: 404, message: 'Match not found' } };
 
-  const existingTeams = await Team.count({ where: { match_id: matchId } });
+  const existingTeams = await Team.count({ where: { match_id: matchId, group_id: groupId } });
   if (existingTeams > 0) {
     return { error: { status: 409, message: 'Teams already exist for match' } };
   }
 
-  const players = await Player.findAll({ where: { id: playerIds } });
+  const players = await Player.findAll({
+    where: { id: playerIds, group_id: groupId, deleted_at: null },
+  });
   if (players.length !== playerIds.length) {
     return { error: { status: 400, message: 'Invalid player_ids' } };
   }
 
-  const { best, bestMeta, usedStrictGender } = await computeBestTeams(players, playerIds, options);
+  const { best, bestMeta, usedStrictGender } = await computeBestTeams(
+    groupId,
+    players,
+    playerIds,
+    options
+  );
 
   if (!best) {
     return { error: { status: 400, message: 'Unable to generate teams' } };
@@ -248,12 +262,18 @@ async function generateTeams(matchId, playerIds, options = {}) {
   }
 
   const result = await sequelize.transaction(async (t) => {
-    const teamA = await Team.create({ match_id: matchId, name: teamAName }, { transaction: t });
-    const teamB = await Team.create({ match_id: matchId, name: teamBName }, { transaction: t });
+    const teamA = await Team.create(
+      { match_id: matchId, name: teamAName, group_id: groupId },
+      { transaction: t }
+    );
+    const teamB = await Team.create(
+      { match_id: matchId, name: teamBName, group_id: groupId },
+      { transaction: t }
+    );
 
     const rows = [
-      ...best.teamA.map((p) => ({ team_id: teamA.id, player_id: p.id })),
-      ...best.teamB.map((p) => ({ team_id: teamB.id, player_id: p.id })),
+      ...best.teamA.map((p) => ({ team_id: teamA.id, player_id: p.id, group_id: groupId })),
+      ...best.teamB.map((p) => ({ team_id: teamB.id, player_id: p.id, group_id: groupId })),
     ];
 
     await TeamPlayer.bulkCreate(rows, { transaction: t });

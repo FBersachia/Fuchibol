@@ -26,7 +26,7 @@ export function LoginPage() {
         body: JSON.stringify(form),
       });
       setAuth(payload);
-      navigate('/players', { replace: true });
+      navigate('/groups', { replace: true });
     } catch (err) {
       setError(err.message || 'No se pudo iniciar sesion.');
     } finally {

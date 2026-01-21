@@ -1,10 +1,9 @@
-﻿const request = require('supertest');
+const request = require('supertest');
 const { app } = require('../src/app');
-const { getAdminToken } = require('./helpers');
+const { getAdminAuthHeaders } = require('./helpers');
 
 async function authHeader() {
-  const token = await getAdminToken();
-  return { Authorization: `Bearer ${token}` };
+  return getAdminAuthHeaders();
 }
 
 describe('Ranking', () => {
@@ -12,12 +11,12 @@ describe('Ranking', () => {
     await request(app)
       .post('/players')
       .set(await authHeader())
-      .send({ name: 'P1', gender: 'h', elo: 1100 });
+      .send({ name: 'P1', gender: 'h', elo: 900 });
 
     await request(app)
       .post('/players')
       .set(await authHeader())
-      .send({ name: 'P2', gender: 'm', elo: 1200 });
+      .send({ name: 'P2', gender: 'm', elo: 950 });
 
     const res = await request(app)
       .get('/ranking?limit=5')
@@ -27,3 +26,4 @@ describe('Ranking', () => {
     expect(res.body.ranking.length).toBeGreaterThan(0);
   });
 });
+

@@ -7,7 +7,7 @@ function uniqueIds(ids) {
 async function listTeams(req, res, next) {
   try {
     const { match_id } = req.query;
-    const where = {};
+    const where = { group_id: req.group.id };
     if (match_id) where.match_id = match_id;
 
     const teams = await Team.findAll({ where, order: [['id', 'ASC']] });
@@ -29,19 +29,25 @@ async function createTeam(req, res, next) {
       return res.status(400).json({ error: 'Duplicate players in team' });
     }
 
-    const match = await Match.findByPk(match_id);
+    const match = await Match.findOne({ where: { id: match_id, group_id: req.group.id } });
     if (!match) {
       return res.status(404).json({ error: 'Match not found' });
     }
 
-    const existingPlayers = await Player.findAll({ where: { id: playerIds } });
+    const existingPlayers = await Player.findAll({
+      where: { id: playerIds, group_id: req.group.id, deleted_at: null },
+    });
     if (existingPlayers.length !== playerIds.length) {
       return res.status(400).json({ error: 'Invalid player ids' });
     }
 
     const result = await sequelize.transaction(async (t) => {
-      const team = await Team.create({ match_id, name }, { transaction: t });
-      const rows = playerIds.map((player_id) => ({ team_id: team.id, player_id }));
+      const team = await Team.create({ match_id, name, group_id: req.group.id }, { transaction: t });
+      const rows = playerIds.map((player_id) => ({
+        team_id: team.id,
+        player_id,
+        group_id: req.group.id,
+      }));
       await TeamPlayer.bulkCreate(rows, { transaction: t });
       return team;
     });
@@ -57,7 +63,7 @@ async function updateTeam(req, res, next) {
     const { id } = req.params;
     const { name, players } = req.body;
 
-    const team = await Team.findByPk(id);
+    const team = await Team.findOne({ where: { id, group_id: req.group.id } });
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });
     }
@@ -72,13 +78,20 @@ async function updateTeam(req, res, next) {
           return { error: { status: 400, message: 'Duplicate players in team' } };
         }
 
-        const existingPlayers = await Player.findAll({ where: { id: playerIds }, transaction: t });
+        const existingPlayers = await Player.findAll({
+          where: { id: playerIds, group_id: req.group.id, deleted_at: null },
+          transaction: t,
+        });
         if (existingPlayers.length !== playerIds.length) {
           return { error: { status: 400, message: 'Invalid player ids' } };
         }
 
         await TeamPlayer.destroy({ where: { team_id: team.id }, transaction: t });
-        const rows = playerIds.map((player_id) => ({ team_id: team.id, player_id }));
+        const rows = playerIds.map((player_id) => ({
+          team_id: team.id,
+          player_id,
+          group_id: req.group.id,
+        }));
         await TeamPlayer.bulkCreate(rows, { transaction: t });
       }
 
@@ -98,7 +111,7 @@ async function updateTeam(req, res, next) {
 async function deleteTeam(req, res, next) {
   try {
     const { id } = req.params;
-    const team = await Team.findByPk(id);
+    const team = await Team.findOne({ where: { id, group_id: req.group.id } });
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });
     }

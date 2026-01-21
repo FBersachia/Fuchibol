@@ -1,10 +1,9 @@
-﻿const request = require('supertest');
+const request = require('supertest');
 const { app } = require('../src/app');
-const { getAdminToken } = require('./helpers');
+const { getAdminAuthHeaders } = require('./helpers');
 
 async function authHeader() {
-  const token = await getAdminToken();
-  return { Authorization: `Bearer ${token}` };
+  return getAdminAuthHeaders();
 }
 
 describe('Team generation', () => {
@@ -22,7 +21,7 @@ describe('Team generation', () => {
       const res = await request(app)
         .post('/players')
         .set(await authHeader())
-        .send({ name: `P${i}`, gender, elo: 1000 + i, is_goalkeeper: i === 0 });
+        .send({ name: `P${i}`, gender, elo: 900 + i, is_goalkeeper: i === 0 });
       players.push(res.body.id);
     }
 
@@ -36,3 +35,4 @@ describe('Team generation', () => {
     expect(genRes.body.teamB.players.length).toBe(3);
   });
 });
+

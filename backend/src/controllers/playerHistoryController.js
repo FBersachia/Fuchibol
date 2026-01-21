@@ -3,14 +3,16 @@
 async function getPlayerEloHistory(req, res, next) {
   try {
     const { id } = req.params;
-    const player = await Player.findByPk(id);
+    const player = await Player.findOne({
+      where: { id, group_id: req.group.id, deleted_at: null },
+    });
     if (!player) {
       return res.status(404).json({ error: 'Player not found' });
     }
 
     const history = await EloHistory.findAll({
-      where: { player_id: id },
-      include: [{ model: Match }],
+      where: { player_id: id, group_id: req.group.id },
+      include: [{ model: Match, where: { group_id: req.group.id } }],
       order: [[Match, 'match_date', 'ASC'], ['id', 'ASC']],
     });
 

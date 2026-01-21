@@ -21,6 +21,10 @@ const Match = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    group_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   },
   {
     tableName: 'matches',

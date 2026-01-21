@@ -20,6 +20,10 @@ export async function apiFetch(path, options = {}) {
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
+  const groupId = localStorage.getItem('fuchibol_group_id');
+  if (groupId && !headers.has('X-Group-Id')) {
+    headers.set('X-Group-Id', groupId);
+  }
 
   const res = await fetch(buildUrl(path), {
     ...options,
