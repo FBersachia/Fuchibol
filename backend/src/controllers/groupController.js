@@ -32,6 +32,22 @@ const RESERVED_SLUGS = new Set([
   'invitations',
 ]);
 
+const PREMIUM_ADMIN_EMAILS = new Set(
+  [
+    'fbersachia@gmail.com',
+    ...(process.env.PREMIUM_ADMIN_EMAILS || '').split(','),
+  ]
+    .map((email) => String(email).trim().toLowerCase())
+    .filter(Boolean)
+);
+
+const PREMIUM_ADMIN_USER_IDS = new Set(
+  (process.env.PREMIUM_ADMIN_USER_IDS || '')
+    .split(',')
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value))
+);
+
 function isValidSlug(slug) {
   if (!slug) return false;
   if (slug.length > 40) return false;
@@ -47,6 +63,13 @@ function slugify(value) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '')
     .slice(0, 40);
+}
+
+async function canManageMultipleGroups(userId) {
+  if (PREMIUM_ADMIN_USER_IDS.has(Number(userId))) return true;
+  const user = await User.findByPk(userId, { attributes: ['email'] });
+  if (!user?.email) return false;
+  return PREMIUM_ADMIN_EMAILS.has(String(user.email).trim().toLowerCase());
 }
 
 async function listGroups(req, res, next) {
@@ -84,12 +107,15 @@ async function createGroup(req, res, next) {
       return res.status(400).json({ error: 'Invalid slug' });
     }
 
-    const existingAdmin = await GroupMember.findOne({
-      where: { user_id: req.user.id, role: 'admin', deleted_at: null },
-      include: [{ model: Group, where: { deleted_at: null } }],
-    });
-    if (existingAdmin) {
-      return res.status(400).json({ error: 'User already manages a group' });
+    const allowMultipleGroups = await canManageMultipleGroups(req.user.id);
+    if (!allowMultipleGroups) {
+      const existingAdmin = await GroupMember.findOne({
+        where: { user_id: req.user.id, role: 'admin', deleted_at: null },
+        include: [{ model: Group, where: { deleted_at: null } }],
+      });
+      if (existingAdmin) {
+        return res.status(400).json({ error: 'User already manages a group' });
+      }
     }
 
     const existingGroup = await Group.findOne({ where: { slug: normalizedSlug } });

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { apiFetch } from '../services/api';
 import { getAuth } from '../services/auth';
 
-const emptyCreate = { name: '', gender: 'h', elo: 1200, is_goalkeeper: false };
+const emptyCreate = { name: '', gender: 'h', elo: 500, is_goalkeeper: false };
 
 export function PlayersPage() {
   const auth = getAuth();
@@ -182,6 +182,7 @@ export function PlayersPage() {
                     value={createForm.elo}
                     onChange={onCreateChange}
                     min="0"
+                    placeholder="500"
                     required
                   />
                 </label>
@@ -224,17 +225,17 @@ export function PlayersPage() {
           <p className="notice">Cargando...</p>
         ) : (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table--players">
               <thead>
                 <tr>
-                  <th>Nombre</th>
-                  <th>Genero</th>
-                  <th>Elo</th>
-                  <th>Wins</th>
-                  <th>Losses</th>
-                  <th>Arquero</th>
-                  {isAdmin ? <th>Usuario</th> : null}
-                  {isAdmin ? <th>Acciones</th> : null}
+                  <th className="col-name">Nombre</th>
+                  <th className="col-gender">Genero</th>
+                  <th className="col-elo">Elo</th>
+                  <th className="col-wins">Wins</th>
+                  <th className="col-losses">Losses</th>
+                  <th className="col-goalkeeper">Arquero</th>
+                  {isAdmin ? <th className="col-user">Usuario</th> : null}
+                  {isAdmin ? <th className="col-actions">Acciones</th> : null}
                 </tr>
               </thead>
               <tbody>
@@ -242,7 +243,7 @@ export function PlayersPage() {
                   const isEditing = editingId === player.id;
                   return (
                     <tr key={player.id}>
-                      <td>
+                      <td className="col-name">
                         {isEditing ? (
                           <input
                             className="input input--table"
@@ -254,7 +255,7 @@ export function PlayersPage() {
                           player.name
                         )}
                       </td>
-                      <td>
+                      <td className="col-gender">
                         {isEditing ? (
                           <select
                             className="input input--table"
@@ -269,7 +270,7 @@ export function PlayersPage() {
                           player.gender
                         )}
                       </td>
-                      <td>
+                      <td className="col-elo">
                         {isEditing ? (
                           <input
                             className="input input--table"
@@ -283,7 +284,7 @@ export function PlayersPage() {
                           player.elo
                         )}
                       </td>
-                      <td>
+                      <td className="col-wins">
                         {isEditing ? (
                           <input
                             className="input input--table"
@@ -297,7 +298,7 @@ export function PlayersPage() {
                           player.wins
                         )}
                       </td>
-                      <td>
+                      <td className="col-losses">
                         {isEditing ? (
                           <input
                             className="input input--table"
@@ -311,7 +312,7 @@ export function PlayersPage() {
                           player.losses
                         )}
                       </td>
-                      <td>
+                      <td className="col-goalkeeper">
                         {isEditing ? (
                           <input
                             className="input input--table"
@@ -327,7 +328,7 @@ export function PlayersPage() {
                         )}
                       </td>
                       {isAdmin ? (
-                        <td>
+                        <td className="col-user">
                           {isEditing ? (
                             <select
                               className="input input--table"
@@ -350,7 +351,7 @@ export function PlayersPage() {
                         </td>
                       ) : null}
                       {isAdmin ? (
-                        <td>
+                        <td className="col-actions">
                           {isEditing ? (
                             <div className="actions">
                               <button

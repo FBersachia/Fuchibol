@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { apiFetch } from '../services/api';
 import { setAuth } from '../services/auth';
@@ -15,8 +15,28 @@ export function InviteJoinPage() {
   const navigate = useNavigate();
   const { slug, token } = useParams();
   const [form, setForm] = useState(initialForm);
+  const [inviteInfo, setInviteInfo] = useState(null);
   const [error, setError] = useState('');
+  const [infoError, setInfoError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingInfo, setLoadingInfo] = useState(true);
+
+  useEffect(() => {
+    const loadInviteInfo = async () => {
+      setLoadingInfo(true);
+      setInfoError('');
+      try {
+        const info = await apiFetch(`/invites/${slug}/${token}`);
+        setInviteInfo(info);
+      } catch (err) {
+        setInfoError(err.message || 'No se pudo validar la invitacion.');
+      } finally {
+        setLoadingInfo(false);
+      }
+    };
+
+    loadInviteInfo();
+  }, [slug, token]);
 
   const onChange = (event) => {
     const { name, value } = event.target;
@@ -32,10 +52,13 @@ export function InviteJoinPage() {
       email: form.email.trim(),
       password: form.password,
     };
-    if (form.nickname.trim()) payload.nickname = form.nickname.trim();
-    if (form.gender) payload.gender = form.gender;
-    if (form.elo !== '' && form.elo !== null && form.elo !== undefined) {
-      payload.elo = Number(form.elo);
+    const isSpecific = inviteInfo?.type === 'specific';
+    if (!isSpecific) {
+      if (form.nickname.trim()) payload.nickname = form.nickname.trim();
+      if (form.gender) payload.gender = form.gender;
+      if (form.elo !== '' && form.elo !== null && form.elo !== undefined) {
+        payload.elo = Number(form.elo);
+      }
     }
 
     try {
@@ -70,6 +93,9 @@ export function InviteJoinPage() {
             <p className="muted">Completa tus datos para unirte.</p>
           </div>
 
+          {loadingInfo ? <p className="notice">Cargando invitacion...</p> : null}
+          {infoError ? <p className="notice error">{infoError}</p> : null}
+
           <form className="stack gap-sm" onSubmit={onSubmit}>
             <label className="field">
               <span>Email</span>
@@ -95,49 +121,60 @@ export function InviteJoinPage() {
               />
             </label>
 
-            <div className="card stack gap-sm">
-              <h2>Datos del jugador (solo invitacion general)</h2>
-              <label className="field">
-                <span>Nickname</span>
-                <input
-                  className="input"
-                  name="nickname"
-                  value={form.nickname}
-                  onChange={onChange}
-                />
-              </label>
-              <div className="grid grid-2">
+            {inviteInfo?.type === 'specific' ? (
+              <div className="card stack gap-sm">
+                <h2>Jugador asignado</h2>
+                <p className="muted">Este link ya tiene un jugador asociado.</p>
                 <label className="field">
-                  <span>Genero</span>
-                  <select
-                    className="input"
-                    name="gender"
-                    value={form.gender}
-                    onChange={onChange}
-                  >
-                    <option value="">Seleccionar</option>
-                    <option value="h">H</option>
-                    <option value="m">M</option>
-                  </select>
+                  <span>Nickname</span>
+                  <input className="input" value={inviteInfo?.player?.name || '-'} readOnly />
                 </label>
+              </div>
+            ) : (
+              <div className="card stack gap-sm">
+                <h2>Datos del jugador (solo invitacion general)</h2>
                 <label className="field">
-                  <span>Elo inicial</span>
+                  <span>Nickname</span>
                   <input
                     className="input"
-                    name="elo"
-                    type="number"
-                    min="300"
-                    max="1000"
-                    value={form.elo}
+                    name="nickname"
+                    value={form.nickname}
                     onChange={onChange}
                   />
                 </label>
+                <div className="grid grid-2">
+                  <label className="field">
+                    <span>Genero</span>
+                    <select
+                      className="input"
+                      name="gender"
+                      value={form.gender}
+                      onChange={onChange}
+                    >
+                      <option value="">Seleccionar</option>
+                      <option value="h">H</option>
+                      <option value="m">M</option>
+                    </select>
+                  </label>
+                  <label className="field">
+                    <span>Elo inicial</span>
+                    <input
+                      className="input"
+                      name="elo"
+                      type="number"
+                      min="300"
+                      max="1000"
+                      value={form.elo}
+                      onChange={onChange}
+                    />
+                  </label>
+                </div>
               </div>
-            </div>
+            )}
 
             {error ? <p className="notice error">{error}</p> : null}
 
-            <button className="button" type="submit" disabled={loading}>
+            <button className="button" type="submit" disabled={loading || loadingInfo || Boolean(infoError)}>
               {loading ? 'Enviando...' : 'Unirme al grupo'}
             </button>
           </form>
