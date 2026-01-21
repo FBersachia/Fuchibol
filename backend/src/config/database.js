@@ -5,6 +5,10 @@ const storage = process.env.DB_STORAGE || ':memory:';
 const connectionUrl = process.env.DATABASE_URL || '';
 const sslEnabled = process.env.DB_SSL === 'true' || process.env.DB_SSL === '1';
 
+if (dialect === 'postgres' || connectionUrl.startsWith('postgres')) {
+  require('pg');
+}
+
 const baseConfig = {
   host: process.env.DB_HOST || 'localhost',
   port: Number(process.env.DB_PORT || 5432),
