@@ -40,6 +40,15 @@ function isValidSlug(slug) {
   return true;
 }
 
+function slugify(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '')
+    .slice(0, 40);
+}
+
 async function listGroups(req, res, next) {
   try {
     const memberships = await GroupMember.findAll({
@@ -64,11 +73,13 @@ async function listGroups(req, res, next) {
 async function createGroup(req, res, next) {
   try {
     const { name, slug } = req.body;
-    if (!name || !slug) {
-      return res.status(400).json({ error: 'name and slug are required' });
+    if (!name) {
+      return res.status(400).json({ error: 'name is required' });
     }
 
-    const normalizedSlug = String(slug).trim().toLowerCase();
+    const baseSlug =
+      slug !== undefined && slug !== null && String(slug).trim() !== '' ? String(slug) : slugify(name);
+    const normalizedSlug = baseSlug.trim().toLowerCase();
     if (!isValidSlug(normalizedSlug)) {
       return res.status(400).json({ error: 'Invalid slug' });
     }
