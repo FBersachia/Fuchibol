@@ -200,7 +200,7 @@ async function joinByInvite(req, res, next) {
         }
       }
     } else {
-      if (!gender) {
+      if (!gender && invite.type !== 'specific') {
         return res.status(400).json({ error: 'gender is required' });
       }
       const bcrypt = require('bcryptjs');
@@ -209,7 +209,7 @@ async function joinByInvite(req, res, next) {
         name: nickname || email,
         email,
         password_hash,
-        gender,
+        gender: gender || null,
         role: 'user',
       });
     }
