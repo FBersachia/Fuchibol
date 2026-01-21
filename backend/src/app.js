@@ -1,4 +1,5 @@
-﻿const express = require('express');
+const express = require('express');
+const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const playerRoutes = require('./routes/players');
@@ -17,6 +18,12 @@ const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
+const allowedOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(cors({ origin: allowedOrigins.length ? allowedOrigins : true }));
 app.use(express.json());
 
 app.get('/health', (_req, res) => {
