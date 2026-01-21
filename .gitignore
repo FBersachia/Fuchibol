@@ -6,3 +6,6 @@ frontend/.env
 frontend/dist/
 .local-postgres/
 *.log
+logs_result_vercel_deploy_*.json
+Matriz de equipos - fuchibol 2026 - Habilidad.csv
+Matriz de equipos - fuchibol 2026 - Historial.csv
