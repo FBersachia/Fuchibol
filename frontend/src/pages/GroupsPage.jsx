@@ -17,6 +17,7 @@ export function GroupsPage() {
   const navigate = useNavigate();
 
   const [groups, setGroups] = useState([]);
+  const [allowMultipleGroups, setAllowMultipleGroups] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeId, setActiveId] = useState(() => localStorage.getItem(GROUP_KEY) || '');
@@ -34,6 +35,7 @@ export function GroupsPage() {
       const data = await apiFetch('/groups');
       const list = data?.groups || [];
       setGroups(list);
+      setAllowMultipleGroups(Boolean(data?.allow_multiple_groups));
 
       const stored = localStorage.getItem(GROUP_KEY);
       if (stored && !list.some((group) => String(group.id) === String(stored))) {
@@ -42,6 +44,7 @@ export function GroupsPage() {
       }
     } catch (err) {
       setError(err.message || 'No se pudo cargar grupos.');
+      setAllowMultipleGroups(false);
     } finally {
       setLoading(false);
     }
@@ -57,6 +60,7 @@ export function GroupsPage() {
   );
   const activeRole = activeGroup?.role;
   const isAdminOfAny = groups.some((group) => group.role === 'admin');
+  const canCreateGroup = !isAdminOfAny || allowMultipleGroups;
 
   useEffect(() => {
     if (activeId) {
@@ -93,7 +97,7 @@ export function GroupsPage() {
 
   const onCreateGroup = async (event) => {
     event.preventDefault();
-    if (isAdminOfAny) return;
+    if (!canCreateGroup) return;
 
     setCreating(true);
     setError('');
@@ -198,7 +202,7 @@ export function GroupsPage() {
 
           <form className="card stack gap-sm" onSubmit={onCreateGroup}>
             <h2>Crear grupo</h2>
-            {isAdminOfAny ? (
+            {!canCreateGroup ? (
               <p className="notice">Ya administras un grupo. No podes crear otro.</p>
             ) : null}
             <div className="grid grid-2">
@@ -210,7 +214,7 @@ export function GroupsPage() {
                   value={createForm.name}
                   onChange={onCreateChange}
                   required
-                  disabled={isAdminOfAny || creating}
+                  disabled={!canCreateGroup || creating}
                 />
               </label>
               <label className="field">
@@ -222,11 +226,11 @@ export function GroupsPage() {
                   onChange={onCreateChange}
                   placeholder="grupo123"
                   required
-                  disabled={isAdminOfAny || creating}
+                  disabled={!canCreateGroup || creating}
                 />
               </label>
             </div>
-            <button className="button" type="submit" disabled={isAdminOfAny || creating}>
+            <button className="button" type="submit" disabled={!canCreateGroup || creating}>
               {creating ? 'Creando...' : 'Crear grupo'}
             </button>
           </form>

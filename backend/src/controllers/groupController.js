@@ -74,6 +74,7 @@ async function canManageMultipleGroups(userId) {
 
 async function listGroups(req, res, next) {
   try {
+    const allowMultipleGroups = await canManageMultipleGroups(req.user.id);
     const memberships = await GroupMember.findAll({
       where: { user_id: req.user.id, deleted_at: null },
       include: [{ model: Group, where: { deleted_at: null } }],
@@ -87,7 +88,7 @@ async function listGroups(req, res, next) {
       role: m.role,
     }));
 
-    return res.json({ groups });
+    return res.json({ groups, allow_multiple_groups: allowMultipleGroups });
   } catch (err) {
     return next(err);
   }
