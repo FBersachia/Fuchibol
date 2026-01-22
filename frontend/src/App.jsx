@@ -14,6 +14,7 @@ import { InvitesPage } from './pages/InvitesPage';
 import { InviteJoinPage } from './pages/InviteJoinPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { GroupAdminPage } from './pages/GroupAdminPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { Layout } from './components/Layout';
 import { getAuth } from './services/auth';
 
@@ -45,6 +46,16 @@ function App() {
           <RequireAuth>
             <Layout>
               <GroupsPage />
+            </Layout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <RequireAuth>
+            <Layout>
+              <ProfilePage />
             </Layout>
           </RequireAuth>
         }

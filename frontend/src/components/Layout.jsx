@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { clearAuth } from '../services/auth';
+import { clearAuth, getAuth } from '../services/auth';
 
 export function Layout({ children }) {
   const navigate = useNavigate();
   const [navOpen, setNavOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+  const auth = getAuth();
+  const isAdmin = auth?.user?.role === 'admin';
 
   const onLogout = () => {
     clearAuth();
@@ -90,41 +92,50 @@ export function Layout({ children }) {
             Ranking
           </NavLink>
           <NavLink
+            to="/profile"
+            className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}
+            onClick={closeNav}
+          >
+            Mi perfil
+          </NavLink>
+          <NavLink
             to="/export"
             className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}
             onClick={closeNav}
           >
             Exportacion
           </NavLink>
-          <div className={adminOpen ? 'dropdown is-open' : 'dropdown'}>
-            <button
-              className="nav-link dropdown-toggle"
-              type="button"
-              onClick={() => setAdminOpen((prev) => !prev)}
-              aria-expanded={adminOpen}
-            >
-              Admin
-            </button>
-            {adminOpen ? (
-              <div className="dropdown-menu">
-                <NavLink to="/admin/group" className="dropdown-item" onClick={closeNav}>
-                  Grupo activo
-                </NavLink>
-                <NavLink to="/users" className="dropdown-item" onClick={closeNav}>
-                  Usuarios
-                </NavLink>
-                <NavLink to="/config" className="dropdown-item" onClick={closeNav}>
-                  Configuracion
-                </NavLink>
-                <NavLink to="/invites" className="dropdown-item" onClick={closeNav}>
-                  Invitaciones
-                </NavLink>
-                <NavLink to="/courts" className="dropdown-item" onClick={closeNav}>
-                  Canchas
-                </NavLink>
-              </div>
-            ) : null}
-          </div>
+          {isAdmin ? (
+            <div className={adminOpen ? 'dropdown is-open' : 'dropdown'}>
+              <button
+                className="nav-link dropdown-toggle"
+                type="button"
+                onClick={() => setAdminOpen((prev) => !prev)}
+                aria-expanded={adminOpen}
+              >
+                Admin
+              </button>
+              {adminOpen ? (
+                <div className="dropdown-menu">
+                  <NavLink to="/admin/group" className="dropdown-item" onClick={closeNav}>
+                    Grupo activo
+                  </NavLink>
+                  <NavLink to="/users" className="dropdown-item" onClick={closeNav}>
+                    Usuarios
+                  </NavLink>
+                  <NavLink to="/config" className="dropdown-item" onClick={closeNav}>
+                    Configuracion
+                  </NavLink>
+                  <NavLink to="/invites" className="dropdown-item" onClick={closeNav}>
+                    Invitaciones
+                  </NavLink>
+                  <NavLink to="/courts" className="dropdown-item" onClick={closeNav}>
+                    Canchas
+                  </NavLink>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </nav>
         <button className="button button--ghost" type="button" onClick={onLogout}>
           Salir

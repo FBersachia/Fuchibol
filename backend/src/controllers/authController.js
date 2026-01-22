@@ -1,6 +1,6 @@
 ﻿const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const { User, Player } = require('../models');
 
 async function login(req, res, next) {
   try {
@@ -48,6 +48,35 @@ async function me(req, res, next) {
   }
 }
 
+async function updateMe(req, res, next) {
+  try {
+    const { name, email, gender } = req.body;
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (name !== undefined) user.name = name;
+    if (email !== undefined) user.email = email;
+    if (gender !== undefined) user.gender = gender;
+
+    await user.save();
+    if (gender !== undefined) {
+      await Player.update({ gender: user.gender }, { where: { user_id: user.id } });
+    }
+
+    return res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      gender: user.gender,
+    });
+  } catch (err) {
+    return next(err);
+  }
+}
+
 async function changePassword(req, res, next) {
   try {
     const { current_password, new_password } = req.body;
@@ -74,4 +103,4 @@ async function changePassword(req, res, next) {
   }
 }
 
-module.exports = { login, logout, me, changePassword };
+module.exports = { login, logout, me, updateMe, changePassword };
