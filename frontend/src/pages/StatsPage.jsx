@@ -201,6 +201,26 @@ export function StatsPage() {
     }
   };
 
+  const onDeleteMatch = async (matchId) => {
+    if (!isAdmin) return;
+    const confirmed = window.confirm('¿Eliminar partido? Esta accion no se puede deshacer.');
+    if (!confirmed) return;
+    setError('');
+    try {
+      await apiFetch(`/matches/${matchId}`, { method: 'DELETE' });
+      setGeneralMatches((prev) => prev.filter((match) => match.id !== matchId));
+      setMatchDetails((prev) => {
+        const next = { ...prev };
+        delete next[matchId];
+        return next;
+      });
+      if (expandedMatchId === matchId) setExpandedMatchId(null);
+      if (editMatchId === matchId) setEditMatchId(null);
+    } catch (err) {
+      setError(err.message || 'No se pudo eliminar el partido.');
+    }
+  };
+
   return (
     <main className="page">
       <section className="panel panel--wide">
@@ -314,6 +334,15 @@ export function StatsPage() {
                               >
                                 Editar partido
                               </button>
+                              {(detail.status === 'completed' || detail.MatchResult) ? (
+                                <button
+                                  className="button button--ghost"
+                                  type="button"
+                                  onClick={() => onDeleteMatch(detail.id)}
+                                >
+                                  Eliminar partido
+                                </button>
+                              ) : null}
                               {editMatchId === detail.id ? (
                                 <div className="card">
                                   <div className="grid grid-2">

@@ -207,6 +207,7 @@ async function deleteMatch(req, res, next) {
     }
 
     await match.destroy();
+    await recalcAllElo(req.group.id);
     return res.status(204).send();
   } catch (err) {
     return next(err);

@@ -14,7 +14,7 @@
 - Partidos/Fechas: CRUD, equipos, resultados, MVP, distinciones.
 - Equipos: generacion por algoritmo (Elo + social + genero + arquero).
 - Canchas: CRUD por grupo.
-- Recalculo: actualizacion historica de Elo al editar resultados.
+- Recalculo: actualizacion historica de Elo al editar resultados y al eliminar partidos.
 
 ## Contexto de grupos
 - Todas las entidades de negocio son por grupo (group_id).

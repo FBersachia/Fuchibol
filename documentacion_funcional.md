@@ -135,6 +135,7 @@
 - Selector de partido/fecha.
 - Editar: fecha, notas, estado (pendiente/completado).
 - Editar jugadores disponibles si el partido aun no se jugo.
+- Eliminar partido jugado (admin).
 - Boton: guardar cambios.
 
 ### Historial y estadisticas
