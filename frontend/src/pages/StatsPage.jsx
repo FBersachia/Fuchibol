@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '../services/api';
+import { getAuth } from '../services/auth';
 
 export function StatsPage() {
+  const auth = getAuth();
+  const isAdmin = auth?.user?.role === 'admin';
   const [players, setPlayers] = useState([]);
   const [selectedPlayerId, setSelectedPlayerId] = useState('');
   const [stats, setStats] = useState(null);
@@ -21,6 +24,8 @@ export function StatsPage() {
     notes: '',
     court_id: '',
     goal_diff: 0,
+    result_winner: '',
+    mvp_player_id: '',
   });
   const [error, setError] = useState('');
 
@@ -112,6 +117,13 @@ export function StatsPage() {
   };
 
   const startEditMatch = (detail) => {
+    const resultWinner = detail.MatchResult
+      ? detail.MatchResult.is_draw
+        ? 'draw'
+        : detail.MatchResult.winning_team_id
+        ? String(detail.MatchResult.winning_team_id)
+        : ''
+      : '';
     setEditMatchId(detail.id);
     setEditForm({
       match_date: detail.match_date || '',
@@ -119,6 +131,8 @@ export function StatsPage() {
       notes: detail.notes || '',
       court_id: detail.court_id ? String(detail.court_id) : '',
       goal_diff: detail.MatchResult?.goal_diff ?? 0,
+      result_winner: resultWinner,
+      mvp_player_id: detail.MatchResult?.mvp_player_id ? String(detail.MatchResult.mvp_player_id) : '',
     });
   };
 
@@ -132,6 +146,10 @@ export function StatsPage() {
     setError('');
     try {
       const detail = matchDetails[editMatchId];
+      if (detail?.MatchResult && !editForm.result_winner) {
+        setError('Selecciona el resultado.');
+        return;
+      }
       const payload = {
         match_date: editForm.match_date,
         status: editForm.status,
@@ -143,6 +161,7 @@ export function StatsPage() {
         body: JSON.stringify(payload),
       });
       if (detail?.MatchResult) {
+        const isDraw = editForm.result_winner === 'draw';
         const distinctions = (detail.Distinctions || []).map((item) => ({
           player_id: item.player_id,
           type: item.type,
@@ -151,10 +170,10 @@ export function StatsPage() {
         await apiFetch(`/matches/${editMatchId}/result`, {
           method: 'PATCH',
           body: JSON.stringify({
-            winning_team_id: detail.MatchResult.winning_team_id,
-            is_draw: detail.MatchResult.is_draw,
+            winning_team_id: isDraw ? null : Number(editForm.result_winner),
+            is_draw: isDraw,
             goal_diff: Number(editForm.goal_diff),
-            mvp_player_id: detail.MatchResult.mvp_player_id,
+            mvp_player_id: editForm.mvp_player_id ? Number(editForm.mvp_player_id) : null,
             distinctions,
           }),
         });
@@ -163,7 +182,14 @@ export function StatsPage() {
         const next = { ...prev };
         const current = next[editMatchId];
         if (current?.MatchResult) {
-          current.MatchResult = { ...current.MatchResult, goal_diff: Number(editForm.goal_diff) };
+          current.MatchResult = {
+            ...current.MatchResult,
+            winning_team_id:
+              editForm.result_winner === 'draw' ? null : Number(editForm.result_winner),
+            is_draw: editForm.result_winner === 'draw',
+            goal_diff: Number(editForm.goal_diff),
+            mvp_player_id: editForm.mvp_player_id ? Number(editForm.mvp_player_id) : null,
+          };
         }
         next[editMatchId] = { ...current, ...updated };
         return next;
@@ -279,88 +305,143 @@ export function StatsPage() {
                           {detail.MatchResult ? (
                             <p className="muted">Diferencia de gol: {detail.MatchResult.goal_diff}</p>
                           ) : null}
-                          <button
-                            className="button button--ghost"
-                            type="button"
-                            onClick={() => startEditMatch(detail)}
-                          >
-                            Editar partido
-                          </button>
-                          {editMatchId === detail.id ? (
-                            <div className="card">
-                              <div className="grid grid-2">
-                                <label className="field">
-                                  <span>Fecha</span>
-                                  <input
-                                    className="input"
-                                    type="date"
-                                    name="match_date"
-                                    value={editForm.match_date}
-                                    onChange={onEditChange}
-                                  />
-                                </label>
-                                <label className="field">
-                                  <span>Estado</span>
-                                  <select
-                                    className="input"
-                                    name="status"
-                                    value={editForm.status}
-                                    onChange={onEditChange}
-                                  >
-                                    <option value="pending">pending</option>
-                                    <option value="completed">completed</option>
-                                  </select>
-                                </label>
-                                <label className="field">
-                                  <span>Cancha</span>
-                                  <select
-                                    className="input"
-                                    name="court_id"
-                                    value={editForm.court_id}
-                                    onChange={onEditChange}
-                                  >
-                                    <option value="">Sin cancha</option>
-                                    {courts.map((court) => (
-                                      <option key={court.id} value={court.id}>
-                                        {court.name}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </label>
-                                  <label className="field">
-                                    <span>Notas</span>
-                                    <input
-                                      className="input"
-                                      name="notes"
-                                      value={editForm.notes}
-                                      onChange={onEditChange}
-                                    />
-                                  </label>
-                                  <label className="field">
-                                    <span>Diferencia de gol</span>
-                                    <input
-                                      className="input"
-                                      type="number"
-                                      min="0"
-                                      name="goal_diff"
-                                      value={editForm.goal_diff}
-                                      onChange={onEditChange}
-                                    />
-                                  </label>
+                          {isAdmin ? (
+                            <>
+                              <button
+                                className="button button--ghost"
+                                type="button"
+                                onClick={() => startEditMatch(detail)}
+                              >
+                                Editar partido
+                              </button>
+                              {editMatchId === detail.id ? (
+                                <div className="card">
+                                  <div className="grid grid-2">
+                                    <label className="field">
+                                      <span>Fecha</span>
+                                      <input
+                                        className="input"
+                                        type="date"
+                                        name="match_date"
+                                        value={editForm.match_date}
+                                        onChange={onEditChange}
+                                      />
+                                    </label>
+                                    <label className="field">
+                                      <span>Estado</span>
+                                      <select
+                                        className="input"
+                                        name="status"
+                                        value={editForm.status}
+                                        onChange={onEditChange}
+                                      >
+                                        <option value="pending">pending</option>
+                                        <option value="completed">completed</option>
+                                      </select>
+                                    </label>
+                                    <label className="field">
+                                      <span>Cancha</span>
+                                      <select
+                                        className="input"
+                                        name="court_id"
+                                        value={editForm.court_id}
+                                        onChange={onEditChange}
+                                      >
+                                        <option value="">Sin cancha</option>
+                                        {courts.map((court) => (
+                                          <option key={court.id} value={court.id}>
+                                            {court.name}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </label>
+                                    <label className="field">
+                                      <span>Notas</span>
+                                      <input
+                                        className="input"
+                                        name="notes"
+                                        value={editForm.notes}
+                                        onChange={onEditChange}
+                                      />
+                                    </label>
+                                    {detail.MatchResult ? (
+                                      <>
+                                        <label className="field">
+                                          <span>Resultado</span>
+                                          <select
+                                            className="input"
+                                            name="result_winner"
+                                            value={editForm.result_winner}
+                                            onChange={onEditChange}
+                                          >
+                                            <option value="">Seleccionar</option>
+                                            {(detail.Teams || []).map((team) => (
+                                              <option key={team.id} value={team.id}>
+                                                {team.name}
+                                              </option>
+                                            ))}
+                                            <option value="draw">Empate</option>
+                                          </select>
+                                        </label>
+                                        <label className="field">
+                                          <span>Diferencia de gol</span>
+                                          <input
+                                            className="input"
+                                            type="number"
+                                            min="0"
+                                            name="goal_diff"
+                                            value={editForm.goal_diff}
+                                            onChange={onEditChange}
+                                          />
+                                        </label>
+                                        <label className="field">
+                                          <span>MVP</span>
+                                          <select
+                                            className="input"
+                                            name="mvp_player_id"
+                                            value={editForm.mvp_player_id}
+                                            onChange={onEditChange}
+                                          >
+                                            <option value="">Sin MVP</option>
+                                            {(detail.Teams || [])
+                                              .flatMap((team) => team.Players || [])
+                                              .map((player) => (
+                                                <option key={player.id} value={player.id}>
+                                                  {player.name}
+                                                </option>
+                                              ))}
+                                          </select>
+                                        </label>
+                                      </>
+                                    ) : (
+                                      <label className="field">
+                                        <span>Diferencia de gol</span>
+                                        <input
+                                          className="input"
+                                          type="number"
+                                          min="0"
+                                          name="goal_diff"
+                                          value={editForm.goal_diff}
+                                          onChange={onEditChange}
+                                        />
+                                      </label>
+                                    )}
+                                  </div>
+                                  <div className="actions">
+                                    <button className="button" type="button" onClick={onSaveEdit}>
+                                      Guardar
+                                    </button>
+                                    <button
+                                      className="button button--ghost"
+                                      type="button"
+                                      onClick={() => setEditMatchId(null)}
+                                    >
+                                      Cancelar
+                                    </button>
+                                  </div>
                                 </div>
-                              <div className="actions">
-                                <button className="button" type="button" onClick={onSaveEdit}>
-                                  Guardar
-                                </button>
-                                <button
-                                  className="button button--ghost"
-                                  type="button"
-                                  onClick={() => setEditMatchId(null)}
-                                >
-                                  Cancelar
-                                </button>
-                              </div>
-                            </div>
+                              ) : null}
+                            </>
                           ) : null}
                           <div className="grid grid-2">
                             {teams.map((team) => (

@@ -129,6 +129,7 @@
 - PATCH /matches/:id (admin)
 - DELETE /matches/:id (admin)
 - POST /matches/:id/generate-teams (admin)
+- POST /matches/played (admin)
 - GET /matches/summary
 
 ### Teams
@@ -303,6 +304,27 @@ Response:
   "teamA": { "id": 22, "players": [{ "id": 1, "name": "A", "elo": 1200 }] },
   "teamB": { "id": 23, "players": [{ "id": 2, "name": "B", "elo": 1190 }] },
   "meta": { "used_strict_gender": true, "diff_elo": 0.1, "diff_gender": 0, "social_score": 2 }
+}
+```
+
+### POST /matches/played
+Request:
+```
+{
+  "match_date": "YYYY-MM-DD",
+  "court_id": 1,
+  "team_a_player_ids": [1, 2, 3, 4, 5],
+  "team_b_player_ids": [6, 7, 8, 9, 10],
+  "winning_team": "A"
+}
+```
+Response:
+```
+{
+  "match_id": 15,
+  "team_a_id": 21,
+  "team_b_id": 22,
+  "status": "completed"
 }
 ```
 

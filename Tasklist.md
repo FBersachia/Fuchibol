@@ -35,6 +35,8 @@
 - [x] Implementar CRUD equipos (P1)
 - [x] Implementar carga de resultados y distinciones (P1)
 - [x] Implementar recalculo de Elo (P1)
+- [ ] Implementar carga manual de partido jugado con empate, diferencia de gol, MVP/distinciones y notas (P1)
+- [ ] Validaciones en partido jugado: tamanos permitidos 5v5, 6v6, 7v7 (P1)
 
 ## Epica: UI
 - [x] UI: selector de grupos (cards) + guardar ultimo grupo (P1)
@@ -48,6 +50,7 @@
 - [x] UI: listado jugadores (P1)
 - [x] UI: generar equipos por fecha (P1)
 - [x] UI: carga de resultados (P1)
+- [ ] UI: cargar partido jugado con empate, diferencia de gol, MVP/distinciones y notas (P1)
 - [x] UI: historial y estadisticas (P2)
 - [x] UI: login (P1)
 - [x] UI: boton "Crear usuario" en login (P1)
@@ -94,5 +97,6 @@
 - [x] Tests: matches CRUD con scoping y courts por grupo
 - [x] Tests: teams CRUD con scoping y team_players.group_id
 - [x] Tests: results scoping y recalcAllElo por grupo
+- [ ] Tests: matches.played (crear partido jugado manual)
 - [x] Tests: config por grupo y config_history con group_id
 - [x] Tests: ranking/social/export scoping por grupo

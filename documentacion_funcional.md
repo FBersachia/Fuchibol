@@ -37,6 +37,7 @@
 - Carga manual de resultado (ganador/perdedor/empate).
 - Diferencia de gol (solo informativa).
 - Distinciones: MVP (uno total) y futuras.
+- Carga manual de partido jugado: definir fecha, cancha, equipos y ganador (flujo por pasos).
 
 ## Recalculo de Elo
 - Al editar un resultado pasado, el sistema recalcula el Elo desde ese partido en adelante.
@@ -116,12 +117,19 @@
 - Boton: confirmar equipos para la fecha.
 
 ### Carga de resultados
-- Selector de partido.
-- Resultado: ganador/equipo A/B o empate.
-- Diferencia de gol.
-- MVP (selector jugador).
-- Distinciones (lista desplegable).
-- Boton: guardar resultado.
+- Switch: alterna entre "Cargar partido manualmente" y "Cargar resultado".
+- Modo "Cargar partido manualmente":
+  - Fecha y cancha.
+  - Seleccion por pasos: Equipo A y luego Equipo B.
+  - Equipo ganador.
+  - Boton: cargar partido.
+- Modo "Cargar resultado":
+  - Selector de partido.
+  - Resultado: ganador/equipo A/B o empate.
+  - Diferencia de gol.
+  - MVP (selector jugador).
+  - Distinciones (lista desplegable).
+  - Boton: guardar resultado.
 
 ### Edicion de partido/fecha
 - Selector de partido/fecha.
