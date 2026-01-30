@@ -30,7 +30,14 @@ export function ExportPage() {
   return (
     <main className="page">
       <section className="panel panel--center">
+        <div className="stack gap-xs">
+          <p className="eyebrow">Exportacion</p>
+          <h1>Exportar datos</h1>
+          <p className="muted">Descarga el historial del grupo en CSV.</p>
+        </div>
+
         <form className="stack gap-md" onSubmit={onExport}>
+          <h2>Rango de fechas</h2>
           <label className="field">
             <span>Desde</span>
             <input

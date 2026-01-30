@@ -122,6 +122,12 @@ export function UsersPage() {
   return (
     <main className="page">
       <section className="panel panel--wide">
+        <div className="stack gap-xs">
+          <p className="eyebrow">Usuarios</p>
+          <h1>Administrar usuarios</h1>
+          <p className="muted">Gestiona accesos, roles y restablecimiento de contrasenas.</p>
+        </div>
+
         <div className="stack gap-md">
           <form className="card stack gap-sm" onSubmit={onCreate}>
             <h2>Crear usuario</h2>
@@ -214,17 +220,19 @@ export function UsersPage() {
 
           {error ? <p className="notice error">{error}</p> : null}
 
-          <div className="table-wrap">
-            <table className="table">
-              <thead>
+          <div className="stack gap-sm">
+            <h2>Listado de usuarios</h2>
+            <div className="table-wrap">
+              <table className="table">
+                <thead>
                 <tr>
                   <th>Nombre</th>
                   <th>Email</th>
                   <th>Rol</th>
                   <th>Acciones</th>
                 </tr>
-              </thead>
-              <tbody>
+                </thead>
+                <tbody>
                 {users.map((user) => {
                   const isEditing = editingId === user.id;
                   return (
@@ -311,8 +319,9 @@ export function UsersPage() {
                     </tr>
                   );
                 })}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>

@@ -75,7 +75,14 @@ export function ConfigPage() {
   return (
     <main className="page">
       <section className="panel panel--wide">
+        <div className="stack gap-xs">
+          <p className="eyebrow">Configuracion</p>
+          <h1>Configuracion del algoritmo</h1>
+          <p className="muted">Ajusta los pesos y la logica de calculo.</p>
+        </div>
+
         <form className="stack gap-md" onSubmit={onSave}>
+          <h2>Parametros principales</h2>
           <div className="grid grid-3">
             <label className="field">
               <span>w_elo</span>

@@ -195,6 +195,9 @@ async function joinByInvite(req, res, next) {
     });
 
     let user = await User.findOne({ where: { email } });
+    if (!user && String(password).length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters' });
+    }
     if (user) {
       const bcrypt = require('bcryptjs');
       const ok = await bcrypt.compare(password, user.password_hash);

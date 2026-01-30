@@ -53,6 +53,12 @@ export function InviteJoinPage() {
       password: form.password,
     };
     const isSpecific = inviteInfo?.type === 'specific';
+    if (payload.password.length < 8) {
+      setError('La contrasena debe tener al menos 8 caracteres.');
+      setLoading(false);
+      return;
+    }
+
     if (!isSpecific) {
       if (form.nickname.trim()) payload.nickname = form.nickname.trim();
       if (form.gender) payload.gender = form.gender;
@@ -117,6 +123,7 @@ export function InviteJoinPage() {
                 type="password"
                 value={form.password}
                 onChange={onChange}
+                minLength={8}
                 required
               />
             </label>

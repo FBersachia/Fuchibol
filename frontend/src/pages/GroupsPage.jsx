@@ -5,6 +5,32 @@ import { apiFetch } from '../services/api';
 const GROUP_KEY = 'fuchibol_group_id';
 const emptyGroup = { name: '', slug: '' };
 
+function parseInvite(value) {
+  const raw = value.trim();
+  if (!raw) return null;
+
+  let pathValue = raw;
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      pathValue = new URL(raw).pathname;
+    } catch {
+      pathValue = raw;
+    }
+  }
+
+  const match = pathValue.match(/(?:^|\/)invites\/([^/]+)\/([^/?#]+)/);
+  if (match) {
+    return { slug: match[1].toLowerCase(), token: match[2] };
+  }
+
+  const fallback = raw.match(/^([a-z0-9]+)\/([^/?#]+)$/i);
+  if (fallback) {
+    return { slug: fallback[1].toLowerCase(), token: fallback[2] };
+  }
+
+  return null;
+}
+
 const slugify = (value) =>
   String(value || '')
     .normalize('NFD')
@@ -23,6 +49,8 @@ export function GroupsPage() {
   const [activeId, setActiveId] = useState(() => localStorage.getItem(GROUP_KEY) || '');
 
   const [createForm, setCreateForm] = useState({ ...emptyGroup });
+  const [inviteForm, setInviteForm] = useState({ invite: '' });
+  const [inviteError, setInviteError] = useState('');
   const [creating, setCreating] = useState(false);
   const [createSlugTouched, setCreateSlugTouched] = useState(false);
 
@@ -79,6 +107,24 @@ export function GroupsPage() {
     localStorage.setItem(GROUP_KEY, String(group.id));
     setActiveId(String(group.id));
     navigate('/players', { replace: true });
+  };
+
+  const onInviteChange = (event) => {
+    const { value } = event.target;
+    setInviteForm({ invite: value });
+  };
+
+  const onInviteSubmit = (event) => {
+    event.preventDefault();
+    setInviteError('');
+
+    const parsed = parseInvite(inviteForm.invite);
+    if (!parsed) {
+      setInviteError('Ingresa un link de invitacion valido.');
+      return;
+    }
+
+    navigate(`/invites/${parsed.slug}/${parsed.token}`);
   };
 
   const onCreateChange = (event) => {
@@ -199,6 +245,25 @@ export function GroupsPage() {
               <li>Podes cambiar de grupo en cualquier momento desde esta pantalla.</li>
             </ul>
           </div>
+
+          <form className="card stack gap-sm" onSubmit={onInviteSubmit}>
+            <h2>Unirse a un grupo</h2>
+            <p className="muted">Pega el link de invitacion generado por un admin.</p>
+            <label className="field">
+              <span>Link de invitacion</span>
+              <input
+                className="input"
+                type="text"
+                name="invite"
+                value={inviteForm.invite}
+                onChange={onInviteChange}
+                placeholder="https://tudominio.com/invites/slug/token"
+                required
+              />
+            </label>
+            {inviteError ? <p className="notice error">{inviteError}</p> : null}
+            <button className="button" type="submit">Continuar</button>
+          </form>
 
           <form className="card stack gap-sm" onSubmit={onCreateGroup}>
             <h2>Crear grupo</h2>

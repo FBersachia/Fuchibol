@@ -2,6 +2,14 @@
 const jwt = require('jsonwebtoken');
 const { User, Player } = require('../models');
 
+function buildAuthResponse(user) {
+  const payload = { id: user.id, role: user.role, name: user.name };
+  const token = jwt.sign(payload, process.env.JWT_SECRET || 'dev_secret', {
+    expiresIn: '8h',
+  });
+  return { token, user: payload };
+}
+
 async function login(req, res, next) {
   try {
     const { email, password } = req.body;
@@ -19,12 +27,7 @@ async function login(req, res, next) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const payload = { id: user.id, role: user.role, name: user.name };
-    const token = jwt.sign(payload, process.env.JWT_SECRET || 'dev_secret', {
-      expiresIn: '8h',
-    });
-
-    return res.json({ token, user: payload });
+    return res.json(buildAuthResponse(user));
   } catch (err) {
     return next(err);
   }
@@ -32,6 +35,35 @@ async function login(req, res, next) {
 
 function logout(_req, res) {
   return res.json({ ok: true });
+}
+
+async function register(req, res, next) {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+    if (String(password).length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters' });
+    }
+
+    const existing = await User.findOne({ where: { email } });
+    if (existing) {
+      return res.status(409).json({ error: 'Email already in use' });
+    }
+
+    const password_hash = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      name: email,
+      email,
+      password_hash,
+      role: 'user',
+    });
+
+    return res.status(201).json(buildAuthResponse(user));
+  } catch (err) {
+    return next(err);
+  }
 }
 
 async function me(req, res, next) {
@@ -103,4 +135,4 @@ async function changePassword(req, res, next) {
   }
 }
 
-module.exports = { login, logout, me, updateMe, changePassword };
+module.exports = { login, logout, register, me, updateMe, changePassword };

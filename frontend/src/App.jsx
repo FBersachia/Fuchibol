@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
+import { HomePage } from './pages/HomePage';
 import { GroupsPage } from './pages/GroupsPage';
 import { PlayersPage } from './pages/PlayersPage';
 import { GenerateTeamsPage } from './pages/GenerateTeamsPage';
@@ -40,6 +41,16 @@ function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/invites/:slug/:token" element={<InviteJoinPage />} />
+      <Route
+        path="/inicio"
+        element={
+          <RequireAuth>
+            <Layout>
+              <HomePage />
+            </Layout>
+          </RequireAuth>
+        }
+      />
       <Route
         path="/groups"
         element={
@@ -192,8 +203,8 @@ function App() {
           </RequireAuth>
         }
       />
-      <Route path="/" element={<Navigate to="/players" replace />} />
-      <Route path="*" element={<Navigate to="/players" replace />} />
+      <Route path="/" element={<Navigate to="/inicio" replace />} />
+      <Route path="*" element={<Navigate to="/inicio" replace />} />
     </Routes>
   );
 }

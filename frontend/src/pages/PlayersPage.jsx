@@ -77,15 +77,15 @@ export function PlayersPage() {
 
   const startEdit = (player) => {
     setEditingId(player.id);
-      setEditForm({
-        name: player.name,
-        gender: player.gender,
-        elo: player.elo,
-        wins: player.wins,
-        losses: player.losses,
-        is_goalkeeper: player.is_goalkeeper,
-        user_id: player.user_id ? String(player.user_id) : '',
-      });
+    setEditForm({
+      name: player.name,
+      gender: player.gender,
+      elo: player.elo,
+      wins: player.wins,
+      losses: player.losses,
+      is_goalkeeper: player.is_goalkeeper,
+      user_id: player.user_id ? String(player.user_id) : '',
+    });
   };
 
   const onEditChange = (event) => {
@@ -138,18 +138,15 @@ export function PlayersPage() {
     <main className="page">
       <section className="panel panel--wide">
         <div className="stack gap-sm">
-          <label className="field">
-            <span>Buscar por nombre</span>
-            <input
-              className="input"
-              type="search"
-              value={filter}
-              onChange={(event) => setFilter(event.target.value)}
-            />
-          </label>
+          <div className="stack gap-xs">
+            <p className="eyebrow">Jugadores</p>
+            <h1>Gestion de jugadores</h1>
+            <p className="muted">Administra la lista y ajusta los datos de cada jugador.</p>
+          </div>
 
           {isAdmin ? (
             <form className="card stack gap-sm" onSubmit={onCreateSubmit}>
+              <h2>Crear jugador</h2>
               <div className="grid grid-3">
                 <label className="field">
                   <span>Nombre</span>
@@ -217,6 +214,19 @@ export function PlayersPage() {
               </button>
             </form>
           ) : null}
+
+          <div className="card stack gap-sm">
+            <h2>Buscar jugadores</h2>
+            <label className="field">
+              <span>Buscar por nombre</span>
+              <input
+                className="input"
+                type="search"
+                value={filter}
+                onChange={(event) => setFilter(event.target.value)}
+              />
+            </label>
+          </div>
         </div>
 
         {error ? <p className="notice error">{error}</p> : null}
@@ -224,172 +234,179 @@ export function PlayersPage() {
         {loading ? (
           <p className="notice">Cargando...</p>
         ) : (
-          <div className="table-wrap">
-            <table className="table table--players">
-              <thead>
-                <tr>
-                  <th className="col-name">Nombre</th>
-                  <th className="col-gender">Genero</th>
-                  <th className="col-elo">Elo</th>
-                  <th className="col-wins">Wins</th>
-                  <th className="col-losses">Losses</th>
-                  <th className="col-goalkeeper">Arquero</th>
-                  {isAdmin ? <th className="col-user">Usuario</th> : null}
-                  {isAdmin ? <th className="col-actions">Acciones</th> : null}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPlayers.map((player) => {
-                  const isEditing = editingId === player.id;
-                  return (
-                    <tr key={player.id}>
-                      <td className="col-name">
-                        {isEditing ? (
-                          <input
-                            className="input input--table"
-                            name="name"
-                            value={editForm.name}
-                            onChange={onEditChange}
-                          />
-                        ) : (
-                          player.name
-                        )}
-                      </td>
-                      <td className="col-gender">
-                        {isEditing ? (
-                          <select
-                            className="input input--table"
-                            name="gender"
-                            value={editForm.gender}
-                            onChange={onEditChange}
-                          >
-                            <option value="h">H</option>
-                            <option value="m">M</option>
-                          </select>
-                        ) : (
-                          player.gender
-                        )}
-                      </td>
-                      <td className="col-elo">
-                        {isEditing ? (
-                          <input
-                            className="input input--table"
-                            type="number"
-                            name="elo"
-                            value={editForm.elo}
-                            onChange={onEditChange}
-                            min="0"
-                          />
-                        ) : (
-                          player.elo
-                        )}
-                      </td>
-                      <td className="col-wins">
-                        {isEditing ? (
-                          <input
-                            className="input input--table"
-                            type="number"
-                            name="wins"
-                            value={editForm.wins}
-                            onChange={onEditChange}
-                            min="0"
-                          />
-                        ) : (
-                          player.wins
-                        )}
-                      </td>
-                      <td className="col-losses">
-                        {isEditing ? (
-                          <input
-                            className="input input--table"
-                            type="number"
-                            name="losses"
-                            value={editForm.losses}
-                            onChange={onEditChange}
-                            min="0"
-                          />
-                        ) : (
-                          player.losses
-                        )}
-                      </td>
-                      <td className="col-goalkeeper">
-                        {isEditing ? (
-                          <input
-                            className="input input--table"
-                            type="checkbox"
-                            name="is_goalkeeper"
-                            checked={editForm.is_goalkeeper}
-                            onChange={onEditChange}
-                          />
-                        ) : player.is_goalkeeper ? (
-                          'Si'
-                        ) : (
-                          'No'
-                        )}
-                      </td>
-                      {isAdmin ? (
-                        <td className="col-user">
+          <div className="stack gap-sm">
+            <h2>Listado de jugadores</h2>
+            <div className="table-wrap">
+              <table className="table table--players">
+                <thead>
+                  <tr>
+                    <th className="col-name">Nombre</th>
+                    <th className="col-gender">Genero</th>
+                    <th className="col-elo">Elo</th>
+                    <th className="col-wins">Wins</th>
+                    <th className="col-losses">Losses</th>
+                    <th className="col-goalkeeper">Arquero</th>
+                    {isAdmin ? <th className="col-user">Usuario</th> : null}
+                    {isAdmin ? <th className="col-actions">Acciones</th> : null}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredPlayers.map((player) => {
+                    const isEditing = editingId === player.id;
+                    return (
+                      <tr key={player.id}>
+                        <td className="col-name">
+                          {isEditing ? (
+                            <input
+                              className="input input--table"
+                              name="name"
+                              value={editForm.name}
+                              onChange={onEditChange}
+                            />
+                          ) : (
+                            player.name
+                          )}
+                        </td>
+                        <td className="col-gender">
                           {isEditing ? (
                             <select
                               className="input input--table"
-                              name="user_id"
-                              value={editForm.user_id}
+                              name="gender"
+                              value={editForm.gender}
                               onChange={onEditChange}
                             >
-                              <option value="">Sin usuario</option>
-                              {users.map((user) => (
-                                <option key={user.id} value={user.id}>
-                                  {user.name}
-                                </option>
-                              ))}
+                              <option value="h">H</option>
+                              <option value="m">M</option>
                             </select>
                           ) : (
-                            player.User?.name ||
-                            users.find((user) => user.id === player.user_id)?.name ||
-                            '—'
+                            player.gender
                           )}
                         </td>
-                      ) : null}
-                      {isAdmin ? (
-                        <td className="col-actions">
+                        <td className="col-elo">
                           {isEditing ? (
-                            <div className="actions">
-                              <button
-                                className="button button--ghost"
-                                type="button"
-                                onClick={() => saveEdit(player.id)}
-                              >
-                                Guardar
-                              </button>
-                              <button className="button button--ghost" type="button" onClick={cancelEdit}>
-                                Cancelar
-                              </button>
-                            </div>
+                            <input
+                              className="input input--table"
+                              type="number"
+                              name="elo"
+                              value={editForm.elo}
+                              onChange={onEditChange}
+                              min="0"
+                            />
                           ) : (
-                            <div className="actions">
-                              <button
-                                className="button button--ghost"
-                                type="button"
-                                onClick={() => startEdit(player)}
-                              >
-                                Editar
-                              </button>
-                              <button
-                                className="button button--ghost"
-                                type="button"
-                                onClick={() => removePlayer(player.id)}
-                              >
-                                Eliminar
-                              </button>
-                            </div>
+                            player.elo
                           )}
                         </td>
-                      ) : null}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        <td className="col-wins">
+                          {isEditing ? (
+                            <input
+                              className="input input--table"
+                              type="number"
+                              name="wins"
+                              value={editForm.wins}
+                              onChange={onEditChange}
+                              min="0"
+                            />
+                          ) : (
+                            player.wins
+                          )}
+                        </td>
+                        <td className="col-losses">
+                          {isEditing ? (
+                            <input
+                              className="input input--table"
+                              type="number"
+                              name="losses"
+                              value={editForm.losses}
+                              onChange={onEditChange}
+                              min="0"
+                            />
+                          ) : (
+                            player.losses
+                          )}
+                        </td>
+                        <td className="col-goalkeeper">
+                          {isEditing ? (
+                            <input
+                              className="input input--table"
+                              type="checkbox"
+                              name="is_goalkeeper"
+                              checked={editForm.is_goalkeeper}
+                              onChange={onEditChange}
+                            />
+                          ) : player.is_goalkeeper ? (
+                            'Si'
+                          ) : (
+                            'No'
+                          )}
+                        </td>
+                        {isAdmin ? (
+                          <td className="col-user">
+                            {isEditing ? (
+                              <select
+                                className="input input--table"
+                                name="user_id"
+                                value={editForm.user_id}
+                                onChange={onEditChange}
+                              >
+                                <option value="">Sin usuario</option>
+                                {users.map((user) => (
+                                  <option key={user.id} value={user.id}>
+                                    {user.name}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              player.User?.name ||
+                              users.find((user) => user.id === player.user_id)?.name ||
+                              '-'
+                            )}
+                          </td>
+                        ) : null}
+                        {isAdmin ? (
+                          <td className="col-actions">
+                            {isEditing ? (
+                              <div className="actions">
+                                <button
+                                  className="button button--ghost"
+                                  type="button"
+                                  onClick={() => saveEdit(player.id)}
+                                >
+                                  Guardar
+                                </button>
+                                <button
+                                  className="button button--ghost"
+                                  type="button"
+                                  onClick={cancelEdit}
+                                >
+                                  Cancelar
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="actions">
+                                <button
+                                  className="button button--ghost"
+                                  type="button"
+                                  onClick={() => startEdit(player)}
+                                >
+                                  Editar
+                                </button>
+                                <button
+                                  className="button button--ghost"
+                                  type="button"
+                                  onClick={() => removePlayer(player.id)}
+                                >
+                                  Eliminar
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        ) : null}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </section>

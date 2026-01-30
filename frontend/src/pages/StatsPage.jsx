@@ -224,8 +224,16 @@ export function StatsPage() {
   return (
     <main className="page">
       <section className="panel panel--wide">
+        <div className="stack gap-xs">
+          <p className="eyebrow">Historial</p>
+          <h1>Estadisticas</h1>
+          <p className="muted">Consulta el detalle de partidos y el rendimiento de los jugadores.</p>
+        </div>
+
         <div className="stack gap-md">
-          <div className="toggle">
+          <div className="card stack gap-sm">
+            <h2>Seleccion de vista</h2>
+            <div className="toggle">
             <button
               className={viewMode === 'general' ? 'button toggle-btn is-active' : 'button button--ghost toggle-btn'}
               type="button"
@@ -240,12 +248,14 @@ export function StatsPage() {
             >
               Historial por jugador
             </button>
+            </div>
           </div>
 
           {error ? <p className="notice error">{error}</p> : null}
 
           {viewMode === 'general' ? (
             <>
+              <h2>Historial general</h2>
               {generalLoading ? <p className="notice">Cargando...</p> : null}
               <div className="table-wrap">
                 <table className="table">
@@ -499,6 +509,7 @@ export function StatsPage() {
             </>
           ) : (
             <>
+              <h2>Historial por jugador</h2>
               <label className="field">
                 <span>Jugador</span>
                 <select

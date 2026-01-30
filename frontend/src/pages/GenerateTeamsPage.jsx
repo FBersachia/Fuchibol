@@ -134,11 +134,20 @@ export function GenerateTeamsPage() {
   return (
     <main className="page">
       <section className="panel panel--wide">
-        {loading ? <p className="notice">Cargando...</p> : null}
-        {error ? <p className="notice error">{error}</p> : null}
+        <div className="stack gap-xs">
+          <p className="eyebrow">Equipos</p>
+          <h1>Generar equipos</h1>
+          <p className="muted">Configura el partido, selecciona jugadores y genera equipos parejos.</p>
+        </div>
+
+        <div className="stack gap-sm">
+          {loading ? <p className="notice">Cargando...</p> : null}
+          {error ? <p className="notice error">{error}</p> : null}
+        </div>
 
         {!loading ? (
           <form className="stack gap-md" onSubmit={onSubmit}>
+            <h2>Configuracion del partido</h2>
             <label className="field">
               <span>Fecha de partido</span>
               <input
@@ -175,6 +184,7 @@ export function GenerateTeamsPage() {
             ) : null}
 
             <div className="stack gap-sm">
+              <h2>Seleccion de jugadores</h2>
               <p className="muted">Jugadores disponibles ({selectedCount})</p>
               <label className="field checkbox">
                 <input
@@ -199,7 +209,7 @@ export function GenerateTeamsPage() {
                       onChange={() => onTogglePlayer(player.id)}
                     />
                     <span>
-                      {player.name} · {player.elo}
+                      {player.name} - {player.elo}
                     </span>
                   </label>
                 ))}
@@ -215,6 +225,7 @@ export function GenerateTeamsPage() {
               <span>Emparejamiento social</span>
             </label>
 
+            <h2>Parametros de equilibrio</h2>
             <div className="grid grid-3">
               <label className="field">
                 <span>Nombre Equipo A</span>
@@ -304,13 +315,14 @@ export function GenerateTeamsPage() {
 
         {result ? (
           <div className="stack gap-md">
+            <h2>Equipos generados</h2>
             <div className="grid grid-2">
               <div className="card">
                 <h2>{result.teamA.name || 'Equipo A'}</h2>
                 <ul className="list">
                   {result.teamA.players.map((player) => (
                     <li key={player.id}>
-                      {player.name} · {player.elo}
+                      {player.name} - {player.elo}
                     </li>
                   ))}
                 </ul>
@@ -321,7 +333,7 @@ export function GenerateTeamsPage() {
                 <ul className="list">
                   {result.teamB.players.map((player) => (
                     <li key={player.id}>
-                      {player.name} · {player.elo}
+                      {player.name} - {player.elo}
                     </li>
                   ))}
                 </ul>

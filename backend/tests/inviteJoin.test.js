@@ -16,7 +16,7 @@ describe('Invite join flow', () => {
       .post(`/invites/${group.slug}/${inviteRes.body.token}/join`)
       .send({
         email: 'joiner@local.com',
-        password: 'pass123',
+        password: 'pass1234',
         nickname: 'Joiner',
         gender: 'h',
         elo: 900,
@@ -60,7 +60,7 @@ describe('Invite join flow', () => {
       .post(`/invites/${group.slug}/${inviteRes.body.token}/join`)
       .send({
         email: 'specific@local.com',
-        password: 'pass123',
+        password: 'pass1234',
         gender: 'm',
       });
 
@@ -88,7 +88,7 @@ describe('Invite join flow', () => {
       .post(`/invites/${group.slug}/${inviteRes.body.token}/join`)
       .send({
         email: 'expired@local.com',
-        password: 'pass123',
+        password: 'pass1234',
         nickname: 'Expired',
         gender: 'h',
       });
@@ -113,7 +113,7 @@ describe('Invite join flow', () => {
       .post(`/invites/${group.slug}/${inviteRes.body.token}/join`)
       .send({
         email: 'used@local.com',
-        password: 'pass123',
+        password: 'pass1234',
         nickname: 'Used',
         gender: 'h',
       });
@@ -146,7 +146,7 @@ describe('Invite join flow', () => {
       .post(`/invites/${group.slug}/${inviteRes.body.token}/join`)
       .send({
         email: 'limit@local.com',
-        password: 'pass123',
+        password: 'pass1234',
         nickname: 'Limit',
         gender: 'h',
         elo: 900,

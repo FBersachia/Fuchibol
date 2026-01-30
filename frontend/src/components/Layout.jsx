@@ -50,6 +50,13 @@ export function Layout({ children }) {
         </button>
         <nav className={navOpen ? 'nav is-open' : 'nav'} id="primary-nav">
           <NavLink
+            to="/inicio"
+            className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}
+            onClick={closeNav}
+          >
+            Inicio
+          </NavLink>
+          <NavLink
             to="/groups"
             className={({ isActive }) => (isActive ? 'nav-link is-active' : 'nav-link')}
             onClick={closeNav}

@@ -6,6 +6,11 @@
 
 ## Epica: Autenticacion y roles
 - [x] Implementar autenticacion y roles (P1)
+- [ ] Flujo post-registro: elegir unirse a grupo o crear grupo (P1)
+- [ ] Registro: validar password minimo 8 caracteres (P1)
+- [ ] Unirse por link reusable desde pantalla inicial (P1)
+- [ ] Crear grupo desde pantalla inicial y asignar admin (P1)
+- [ ] Permitir multiples grupos por usuario (P1)
 
 ## Epica: Grupos y membresias
 - [x] Definir modelos y relaciones: groups, group_members, group_invites (general y especifico)
@@ -42,6 +47,7 @@
 - [x] UI: selector de grupos (cards) + guardar ultimo grupo (P1)
 - [ ] UI: tutorial en inicio debajo del selector (P1)
 - [x] UI: crear/editar grupo (admin) (P1)
+- [x] UI: pagina de inicio con tutorial detallado y accesos a secciones (P1)
 - [x] UI: panel admin de grupo separado de /groups (P1)
 - [x] UI: slug auto desde nombre de grupo (P1)
 - [x] UI: gestion de miembros (listar/salir/transferir admin) (P2)
@@ -58,6 +64,7 @@
 - [x] UI: configuracion (P2)
 - [x] UI: exportacion (P2)
 - [x] UI: ranking (P2)
+- [x] UI: titulos por seccion + orden visual en pantallas principales (P1)
 
 ## Epica: Calidad
 - [ ] Pruebas y validacion (P2)

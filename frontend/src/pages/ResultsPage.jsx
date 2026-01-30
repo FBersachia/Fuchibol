@@ -217,25 +217,34 @@ export function ResultsPage() {
   return (
     <main className="page">
       <section className="panel panel--wide">
+        <div className="stack gap-xs">
+          <p className="eyebrow">Resultados</p>
+          <h1>Gestion de resultados</h1>
+          <p className="muted">Carga resultados y partidos jugados para mantener el historial.</p>
+        </div>
+
         <div className="stack gap-md">
-          {isAdmin ? (
-            <div className="toggle">
-              <button
-                className={viewMode === 'manual' ? 'button toggle-btn is-active' : 'button button--ghost toggle-btn'}
-                type="button"
-                onClick={() => setViewMode('manual')}
-              >
-                Cargar partido manualmente
-              </button>
-              <button
-                className={viewMode === 'result' ? 'button toggle-btn is-active' : 'button button--ghost toggle-btn'}
-                type="button"
-                onClick={() => setViewMode('result')}
-              >
-                Cargar resultado
-              </button>
-            </div>
-          ) : null}
+          <div className="card stack gap-sm">
+            <h2>Modo de carga</h2>
+            {isAdmin ? (
+              <div className="toggle">
+                <button
+                  className={viewMode === 'manual' ? 'button toggle-btn is-active' : 'button button--ghost toggle-btn'}
+                  type="button"
+                  onClick={() => setViewMode('manual')}
+                >
+                  Cargar partido manualmente
+                </button>
+                <button
+                  className={viewMode === 'result' ? 'button toggle-btn is-active' : 'button button--ghost toggle-btn'}
+                  type="button"
+                  onClick={() => setViewMode('result')}
+                >
+                  Cargar resultado
+                </button>
+              </div>
+            ) : null}
+          </div>
 
           {isAdmin && viewMode === 'manual' ? (
             <form className="card stack gap-sm" onSubmit={onCreatePlayedMatch}>
@@ -374,6 +383,7 @@ export function ResultsPage() {
 
           {viewMode === 'result' ? (
             <form className="stack gap-md" onSubmit={onSave}>
+              <h2>Cargar resultado</h2>
               <label className="field">
                 <span>Fecha de partido</span>
                 <input

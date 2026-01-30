@@ -4,3 +4,11 @@
 - [2026-01-20] `npm audit` reporta vulnerabilidades high en cadena `tar/node-gyp` aun con `sqlite3@5.0.2`. Solucion pendiente: ejecutar `npm audit fix --force` si se acepta breaking change.
 - [2026-01-21] Vercel backend 500 por "Please install pg package manually". Solucion: forzar inclusion de `pg` en `backend/src/config/database.js` con `require('pg')` y redeploy.
 - [2026-01-21] Vercel backend con pooler Supabase devuelve `SELF_SIGNED_CERT_IN_CHAIN`. Solucion: `DB_SSL=1` y `DATABASE_URL` con `sslmode=no-verify` (o forzar SSL sin verificacion).
+
+## 2026-01-30 - Errores Vite JSX (UI)
+
+- Resultados: `ResultsPage.jsx` tenia un `</div>` extra dentro del formulario y rompia el JSX.
+- Generar equipos: `GenerateTeamsPage.jsx` quedo con ternarios mal formados (`-` en vez de `?`) y caracteres raros; provocaba errores de parseo.
+- Jugadores: `PlayersPage.jsx` quedo con JSX desbalanceado por reordenamiento y rompia el build.
+
+Solucion: se corrigieron los ternarios, se reescribieron los componentes afectados y se limpio el markup.

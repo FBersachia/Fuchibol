@@ -70,6 +70,12 @@ export function CourtsPage() {
   return (
     <main className="page">
       <section className="panel panel--wide">
+        <div className="stack gap-xs">
+          <p className="eyebrow">Canchas</p>
+          <h1>Gestion de canchas</h1>
+          <p className="muted">Crea y organiza las canchas disponibles.</p>
+        </div>
+
         <div className="stack gap-md">
           <form className="card stack gap-sm" onSubmit={onCreate}>
             <h2>Agregar cancha</h2>
@@ -89,7 +95,9 @@ export function CourtsPage() {
 
           {error ? <p className="notice error">{error}</p> : null}
 
-          <div className="table-wrap">
+          <div className="stack gap-sm">
+            <h2>Listado de canchas</h2>
+            <div className="table-wrap">
             <table className="table">
               <thead>
                 <tr>
@@ -158,6 +166,7 @@ export function CourtsPage() {
                 })}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       </section>
